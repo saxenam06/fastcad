@@ -77,6 +77,14 @@ These are in Temp scratchpads, which get cleared. Saving them is M0's first task
   - `solve\gate3`, `gate3seed` and `gate3reg`: the other meshing routes
   - `gate\projects\GRC_production`: the scratch project
 
+## Repository
+
+- **Location:** `C:\Work\fastcad`, remote `https://github.com/saxenam06/fastcad`.
+- **Branch:** `task/gen_cad_framework`. The first commit, `90070ff` (2026-09-16), holds the docs corpus and the baseline assets.
+- **`.gitattributes`** keeps CAD and FE files byte-exact: `*.step -text`, and `*.med`, `*.pdf` and `*.SLDPRT` as binary.
+- **`.gitignore`** excludes `.remember/` and Python caches.
+- **Before the session:** the `.git` folder was created at 2026-09-16 00:24, empty, on `main`. Only the task branch has been pushed.
+
 ## Connectors this session
 
 - The GitHub MCP server failed to connect (bad authorization header), and Terraform was skipped.

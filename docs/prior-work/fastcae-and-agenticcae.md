@@ -194,6 +194,38 @@ status.md is current and candid.
   - `.venv` has cadquery 2.8.0 with OCP, gmsh, pyvista (with trame) and pymupdf.
   - **Missing:** ortools (there is no CP-SAT anywhere in this repo), torch/PhysicsNeMo, build123d, warp-lang.
 
+## Other documents in fastcae not reviewed in this session
+
+These exist in `C:\Work\fastcae\docs\` and may hold earlier thinking relevant to fastcad. They were **not read in depth** in the 2026-09-15/16 session; reviewing them is a possible follow-up. Only the three files marked below were used, and only in part.
+
+- **Product and strategy:**
+  - `cae-product-blueprint.md`
+  - `Constraint-Governed Simulation Data Factory  Product and Technology Blueprint.md`
+  - `End-to-End CAE + Physics-AI Portfolio for Neural Concept.md`
+  - `Neural Concept EV Powertrain Role  GRC Gearbox Demonstration Strategy.md`
+  - `physical_ai_cast_housing_design_generation_research.md` (a grep found its criteria: "Each design passes exact CAD validation, protected-geometry invariance, castability checks, production meshing and target solver checks", with Gmsh/HXT as the primary production mesher)
+  - `I want to reduce computational time of build and m.md`
+- **Engineering:** `build-plan.md`, `tasks.md`, `verification.md`, plus the architecture, status, generate, ribs, simulate and extract docs that were reviewed.
+- **Research** (`docs/research/`):
+  - `market.md`
+  - `orchestration-and-agents.md`
+  - `optimization.md`
+  - `surrogates.md`
+  - `data-factories.md`
+  - `solver-choice.md`
+  - `geometry-generation.md` (partly used: the finding that agenticCAE's route changes the housing)
+  - `simulation.md`
+  - `design-to-solution.md`
+  - `campaign-runs.md`
+  - `reference-docs.md`
+  - `agenticcae.md`
+  - `baseline-deck.md` and `field-meshing-gate.md` (both used; see [../grc/baseline-deck.md](../grc/baseline-deck.md))
+- **Archive** (`docs/archive/`):
+  - `immersive-geometry-gb3-integration-plan.md`
+  - `gb3-agentic-immersed-ai-platform-master-plan.md`
+  - `grc-gb3-immersed-simulation-implementation-plan.md`
+  - `16-implicit-rib-variants.md` (partly used)
+
 ## Essential files
 
 - **fastcae docs:** `C:\Work\fastcae\docs\` architecture.md, status.md, generate.md, ribs.md, simulate.md, extract.md, README.md.

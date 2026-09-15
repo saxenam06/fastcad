@@ -145,7 +145,65 @@ The three unloaded bores move 0.28–0.35 mm on average.
 | Mesh time | 12.6 s | 7.9 s | 7.0 s | 17 s |
 | Code_Aster solve | 2 min 25 s | 2 min 16 s | 2 min 17 s | 2 min 32 s |
 
-**What the study found:**
+**The same deck on three housings** (fastcae `docs/research/baseline-deck.md`):
+
+| | Rib-free baseline (this deck) | Design 7 (rib-free + campaign ribs, bolt holes clamped) | Production housing (ribs, agenticCAE's couplings) |
+|---|---:|---:|---:|
+| Largest displacement | 22.3 mm | 0.854 mm | 0.418 mm |
+| BORE_MAIN_S2 tilt | 86.5′ | 1.47′ | 1.84′ |
+| BORE_AX2_S2 tilt | 10.3′ | 1.13′ | 0.87′ |
+| p99.9 von Mises | 881 MPa | 114 MPa | 55 MPa |
+
+The 22.3 mm was checked independently: the benchmark's own setup code, on the same mesh, gives 22.324 mm. So the softness comes from the part, not from the deck writer.
+
+**fastcae's variant route, checked on the baseline itself:**
+- **The route:** a 3 mm field → the compiled CGAL mesher, held to the deck mesh's element sizes, following the loaded seats' edges → the deck's setup carried over → a cuDSS solve.
+- **Timing:** about 100 s end to end. CGAL took 9 s for 214,210 TET10 elements and 1.15 M unknowns, with no element below quality 0.1.
+- **Against the engineer's Code_Aster answer on its own mesh:**
+
+| Quantity | Code_Aster (deck mesh) | fastcae's route (its own mesh) | Pass mark |
+|---|---:|---:|---:|
+| Tilts, six seats | 1.94′ – 86.5′ | every one within 0.51% | 3% |
+| Largest displacement | 22.32 mm | 22.26 mm, −0.27% | 3% |
+| Strain energy | 1,146 J | −1.4% | 3% |
+| p99.9 von Mises | 880.6 MPa | 859.2 MPa, −2.4% | 5% |
+| Each reference point's displacement, as a vector | n/a | worst 1.5% (BORE_AX1_S1) | 5% |
+| Each reference point's rotation, as a vector | n/a | worst 0.7% (BORE_MAIN_S2) | 5% |
+| p99 von Mises (advisory) | 264.9 MPa | −6.1% | n/a |
+
+**Two rules of comparison came out of it:**
+1. **Compare deck signals as whole vectors, one point at a time.** One rotation component of 2·10⁻⁵ rad, inside a rotation of 8·10⁻⁴ rad, differed by 24% while the rotation as a whole differed by 0.6%.
+2. **Treat stress percentiles below p99.9 as advisory on a different mesh.** On design #7, p99 moved 8% from the mesh alone.
+
+**What went wrong on the way (fastcae's notes):**
+- The first deck was meshed at a uniform 20 mm, with edge lines on all nine bores and a coupling on each.
+- The narrow bores meshed at about 4 mm instead of 12–14 mm: AX1_S4 held 4,640 nodes, against 1,135 in the gate study. Together the couplings held 26,604 nodes, against 12,652, which overloaded Code_Aster's coupling memory.
+- Lesson: reuse the proven recipe, with sizes taken from the reference mesh and edge lines only on the loaded seats.
+
+**The meshing machinery** (fastcae `docs/research/field-meshing-gate.md`, sections 1–2):
+- **The compiled mesher** (`native/cgal_field`, in the WSL environment `fieldmesh`: CGAL 6.2.1, TBB, pybind11).
+  - The earlier pygalmesh route put the surface up to 1.07 mm off, because it never set CGAL's `relative_error_bound`. The compiled mesher holds boundary nodes within 0.005 mm of the field.
+  - Timings on design #7:
+
+    | Setting | Time | Worst dihedral angle |
+    |---|---:|---:|
+    | pygalmesh | 46 s | n/a |
+    | compiled, one core | 17.6 s | 10° |
+    | **compiled, four cores** | **4.4 s** | 9° |
+    | compiled, one core, sliver passes stopped at 10° | 7.8 s | n/a |
+    | compiled, sliver passes off | 1.1 s | 1,839 slivers |
+
+    CGAL's two sliver passes (perturb and exude) can't be left out.
+- **Element sizes from rules** (`sizes.py`): read the thickness and curvature off the field, then apply the rules. Calibration: CGAL's tets came out at 0.81, and its boundary triangles at 0.75, of the size asked for.
+- **What the size rules cost** on design #7:
+  - fine sizes on every rib, fillet and hole of the housing: **44 M unknowns**;
+  - fine sizes only where the design changes the part: 10.9 M;
+  - **2 elements through the new ribs, 40 mm panels, sizes growing 1 mm per mm: 1.49 M unknowns, meshed in 9–14 s**, the chosen setting;
+  - adding "fillets no longer than their radius": 1.72 M.
+- **The finer mesh changes the answer:** 1.49 M against the coarse 0.84 M gives worst tilt +2.8%, largest displacement +6.4%, p99.9 +4.7%, p99 +8.2%. The coarse mesh was too stiff.
+- **The GPU limit:** cuDSS solved 1.49 M unknowns in 10 s to factorise plus 0.1 s per load case. GPU assembly ran out of memory, and cuDSS failed, at about 2.4 M.
+
+**What the gate study found:**
 - **The distance field (A vs B) costs no accuracy:** every metric stays within what meshing the same field again moves it (B vs B2).
 - **agenticCAE's route is not a reference for this housing.** It leaves out 6 CAD faces, lids holes flat (241.6, 134 and 79 mm across), and cuts 15–24 mm into metal under seat AX2_S2. That seat's tilt comes out 53% low, and another's 20% off.
 - **At about 1.2 M unknowns, the mesh itself is the biggest source of noise.** Meshing the same field again moves the smallest seat's tilt by 7%, element stresses by about 18%, and single peaks by up to 30%.

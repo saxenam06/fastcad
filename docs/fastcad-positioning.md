@@ -15,6 +15,25 @@ Six things set us apart. None of the 21 sources reviewed does all six, and most 
 5. **We produce a design space, not one answer.** Diversity is forced (CP-SAT) and measured on how variants behave. Every source optimises or generates a single answer. Zero-to-CAD makes a dataset of unrelated parts, not variants of one design.
 6. **No code is generated at runtime.** The LLM chooses among tested operators and never writes geometry.
 
+### Our approach in five points (as stated to the user on 2026-09-15)
+
+1. **Start from what the customer already trusts.** Their production CAD, drawing and FE deck are the ground truth. We ask: what engineering-valid alternatives exist around the part that already works?
+2. **Agents decide, tools act, checks judge.**
+   - The LLM reads the CAD, drawings and deck, clarifies the brief, plans architectures and explains results.
+   - Pre-written, tested operators do all the geometry.
+   - CP-SAT enforces rules and forces diversity.
+   - The FE solver decides how each variant behaves.
+   - No code is generated at runtime, and the LLM never touches geometry directly.
+3. **Variety comes from architecture, not dimensions.** A variant is a different way of connecting the interfaces: which bores tie to what, and with which structure. The 12 classes plus moved interfaces give variety in topology that parameter sweeps can't reach.
+4. **Every output is engineering-grade by construction:**
+   - exact STEP with frozen interfaces;
+   - casting rules as hard checks;
+   - the baseline's own style preserved;
+   - a deck equivalent to the baseline's, plus results;
+   - full provenance;
+   - rejected when something fails silently, never quietly repaired.
+5. **Variants are judged by how they behave, not how they look.** They count as different only if they flex differently by more than the mesh noise. That is what makes them useful surrogate-training data for fastCAE.
+
 ## 2. Where each source stands
 
 Legend:

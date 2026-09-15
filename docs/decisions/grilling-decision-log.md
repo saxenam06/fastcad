@@ -2,6 +2,34 @@
 
 This log covers the `/grill-me` session on the fastcad product, held 2026-09-15 to 2026-09-16. Questions came in rounds; each had options and a recommendation. The user's answer is quoted when short and summarised otherwise. The plan of record, [../fastcad-v1-plan.md](../fastcad-v1-plan.md), is built from these answers.
 
+## Before this session: the 2026-09-11 rib plan and what became of its decisions
+
+A previous session (2026-09-10/11) produced [../grc-rib-plan.html](../grc-rib-plan.html).
+- **What it planned:** blending ribs into the rib-free `housing_baseline.brep` using signed distance fields, in the style of nTop; a GPU voxel "fast check"; and CalculiX TET10 as the accurate check.
+- **What that session did:**
+  - analysed the STEP (2,149 faces, 921 kg);
+  - posed 8 design questions: scope, zones, tools, castability, variations, output, protected areas, data model;
+  - researched nTop's rib approach, arXiv 2606.06405 (Attributed Feature Graphs) and the GRC loads;
+  - recommended a graph-based rib model on OCP, SDF and scikit-fem, with a 3-phase plan (Warp → stress → topology).
+- **Its open decisions D1–D8, and what happened to them:**
+
+| ID | Sept-11 default | Status now |
+|---|---|---|
+| D1 | Python for everything; PicoGK (C#) as backup | **Kept:** Python 3.12, in a fresh repo. PicoGK dropped, because the SDF route is no longer the primary one. |
+| D2 | CalculiX for the accurate check | **Replaced:** the customer's own deck solver (Code_Aster in the demo), plus fastcae's GPU cuDSS copy of it (Q15, Q16, Q28). |
+| D3 | Traditional pattern casting with draft; 3D-printed sand later | **Kept** (Q6 A). |
+| D4 | Ribs only; walls in a later phase | **Superseded:** 12 architecture classes, all four kinds of moved interface (Q11), and modifying existing features when the requirement calls for it (Q12). |
+| D5 | M1 patterns: squares and triangles; angle, spacing, thickness, height scale | **Superseded** by the architecture classes. Pattern ribs remain possible operators. |
+| D6 | Pass/fail limits needed from the user | **Replaced:** limits are typed rows in the Requirement Spec, set during the runtime agent's clarifying questions. Physics comes from the deck. |
+| D7 | Noise later | **Still later:** probe load cases, modes and Craig–Bampton export are deferred (Q32). |
+| D8 | Bearing forces worked out from 325 kN·m and gear data | **Replaced:** loads come from the baseline deck (DLC 1.3, 401 kN·m, gear statics from agenticCAE's `loads.json`). Moved interfaces use a gear-statics tool (Q30). |
+
+- **Its other choices, and their fate:**
+  - The rib-free baseline became the production canvas (Q2).
+  - SDF blending and the voxel check became B-rep operators plus GPU TET10 solves. Fields are kept only as measuring tools.
+  - "The agent suggests, a script checks; the agent never invents numbers" is **kept** (principles 2 and 6).
+  - Rebuilding finalists in Onshape turned into Onshape as a kernel candidate in the bake-off.
+
 ## Round 0: decisions taken from the user's own notes
 
 The user's second message (a long set of notes) settled these, and the user did not object when they were read back:

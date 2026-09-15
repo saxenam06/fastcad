@@ -12,7 +12,8 @@ fastcad is an agent-native product. It edits a customer's existing production CA
 | [decisions/grilling-decision-log.md](decisions/grilling-decision-log.md) | Every decision question (Q1–Q33): its options, the recommendation, the user's answer, and the facts that changed recommendations along the way |
 | [decisions/decision-rationale.md](decisions/decision-rationale.md) | For each key decision (R1–R24): why we took it, the evidence and its source, how others do it differently, and what would make us revisit it |
 | [inputs/user-vision-and-notes.md](inputs/user-vision-and-notes.md) | What the user brought to the session: the original brief, their two long sets of notes, the posts they shared later, and every link they supplied |
-| [fastcad-positioning.md](fastcad-positioning.md) | How fastcad compares with 21 papers and tools, commercial platforms and startups, and what we take from them or skip |
+| [fastcad-positioning.md](fastcad-positioning.md) | Our approach in five points, and how fastcad compares with 21 papers and tools, commercial platforms and startups: what we take from them, what we skip |
+| [next-steps.md](next-steps.md) | What happens next: the confirmation, the M0 steps, M1–M5, and the user's action items |
 
 ## Research
 
@@ -20,6 +21,7 @@ Index: [research/README.md](research/README.md)
 
 | Document | What it holds |
 |---|---|
+| [research/housing-to-gear-misalignment.md](research/housing-to-gear-misalignment.md) | Every piece of evidence on how housing variants change bearing-seat motion, gear misalignment and microgeometry: KISSsoft, AAM, the NREL GRC reports, GRC-specific cautions, our own measured seat tilts and gear-mesh leads, and tables linking each variant to its effect |
 | [research/linkedin-posts.md](research/linkedin-posts.md) | The 16 LinkedIn posts the user shared: who wrote each, what it claims, how relevant it is |
 | [research/methods-landscape.md](research/methods-landscape.md) | Academic and open-source methods up to September 2026: LLM CAD, B-rep generators, drawing reading, ways to generate variants, plausibility scoring, ranked building blocks |
 | [research/industry-practice-dfm-vendors.md](research/industry-practice-dfm-vendors.md) | How gearbox housings are varied in industry, casting design rules (DFM), the vendor landscape, how surrogate datasets are built |
