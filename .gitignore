@@ -1,0 +1,16 @@
+# Plugin and session state
+.remember/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,12 @@
+# Keep CAD and FE assets byte-exact (no line-ending conversion)
+*.step -text
+*.stp -text
+*.brep -text
+*.igs -text
+*.iges -text
+*.med binary
+*.rmed binary
+*.pdf binary
+*.SLDPRT binary
+*.SLDDRW binary
+*.SLDASM binary
