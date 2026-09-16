@@ -26,7 +26,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from fastcad.geometry import orient_consistently, solid_volume, surface_mesh  # noqa: E402
+from fastcad.geometry import orient_consistently, solid_volume, surface_mesh
 
 CANVAS = ROOT / "assets" / "target" / "cad" / "housing_ribfree.brep"
 
@@ -232,7 +232,7 @@ def main(size: float) -> int:
     vertices, triangles, faces = repair(vertices, triangles, faces)
     triangles = orient_consistently(vertices, triangles)
     print(f"  repaired in {time.time() - t0:.0f} s (weld {WELD_MM} mm, collapse {COLLAPSE_MM} mm)")
-    crossing, bad = report("  after weld + collapse", vertices, triangles)
+    report("  after weld + collapse", vertices, triangles)
 
     # MeshFix, but only for the damage the collapse itself left. agenticCAE had to give it four
     # real holes to close and it spanned them with flat fans up to 242 mm across, which biased two

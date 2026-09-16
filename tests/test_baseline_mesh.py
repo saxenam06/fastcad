@@ -18,10 +18,13 @@ import numpy as np
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-CANVAS = ROOT / "assets" / "target" / "cad" / "housing_ribfree.brep"
+#: The rib-free housing is not the canvas — the production one is — but it is what the five-step
+#: chain was first got working on, and it is the comparison that says what rib architecture is
+#: worth. It lives in the reference library, which is not in git, so these skip on a fresh clone.
+CANVAS = ROOT / "reference" / "geometry" / "housing_ribfree.brep"
 MESH = ROOT / "data" / "analysis" / "mesh" / "ribfree_tet4.npz"
 
-pytestmark = pytest.mark.skipif(not CANVAS.exists(), reason="canvas not present")
+pytestmark = pytest.mark.skipif(not CANVAS.exists(), reason="reference geometry not present")
 
 
 @pytest.fixture(scope="module")

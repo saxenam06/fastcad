@@ -13,15 +13,14 @@ import sys
 from pathlib import Path
 
 import matplotlib
-import numpy as np
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
+import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from fastcad.geometry import read_step, tessellate  # noqa: E402
+from fastcad.geometry import read_step, tessellate
 
 #: The faces gmsh refused, and what each one is. Found by meshing, not assumed.
 BAD = {
@@ -57,7 +56,7 @@ def main() -> int:
                 f"{face}", (p[:, i].mean(), p[:, j].mean()),
                 textcoords="offset points", xytext=(12, 12), fontsize=11, weight="bold",
                 color=colour,
-                arrowprops=dict(arrowstyle="->", color=colour, lw=1.4),
+                arrowprops={"arrowstyle": "->", "color": colour, "lw": 1.4},
             )
         axis.set_title(title, fontsize=12)
         axis.set_xlabel(f"{ha}  (mm)")

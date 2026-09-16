@@ -29,7 +29,7 @@ from OCP.TopoDS import TopoDS_Shape
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from fastcad.geometry import faces_of, solid_volume, surface_kind  # noqa: E402
+from fastcad.geometry import faces_of, solid_volume, surface_kind
 
 
 def face_area(face) -> float:

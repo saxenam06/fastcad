@@ -177,7 +177,7 @@ def find_bands(points: np.ndarray, axis: np.ndarray, share: float = 0.08) -> lis
             Band(
                 radius=surface_radius,
                 span=(float(a.min()), float(a.max())),
-                nodes=int(len(chunk)),
+                nodes=len(chunk),
                 roundness_mm=float(np.abs(r - surface_radius).max()),
             )
         )

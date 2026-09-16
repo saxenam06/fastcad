@@ -19,15 +19,15 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from fastcad.assets import load_config, scan  # noqa: E402
-from fastcad.geometry import (  # noqa: E402
+from fastcad.assets import load_config, scan
+from fastcad.geometry import (
     is_closed,
     orient_consistently,
     read_step,
     solid_volume,
     surface_mesh,
 )
-from fastcad.meshing import tetrahedralize, to_tet10  # noqa: E402
+from fastcad.meshing import tetrahedralize, to_tet10
 
 
 def main(element_mm: float) -> int:
@@ -51,12 +51,12 @@ def main(element_mm: float) -> int:
         size=element_mm,
         # Curvature sizing is not optional on this part: without it a small hole gets elements
         # wider than the hole and collapses into a flat double-sided ribbon.
-        curvature=int(os.environ.get("MESH_CURVATURE", 8)),
-        min_size=float(os.environ.get("MESH_MIN", 2.0)),
+        curvature=int(os.environ.get("MESH_CURVATURE", "8")),
+        min_size=float(os.environ.get("MESH_MIN", "2.0")),
         patch="surface",
     )
     surface.triangles = orient_consistently(surface.vertices, surface.triangles)
-    closed, bad_edges = is_closed(surface)
+    _, bad_edges = is_closed(surface)
     edge = np.linalg.norm(
         surface.vertices[surface.triangles[:, 0]] - surface.vertices[surface.triangles[:, 1]], axis=1
     )
@@ -72,10 +72,10 @@ def main(element_mm: float) -> int:
     mesh = tetrahedralize(
         surface,
         edge_mm=element_mm,
-        envelope=float(os.environ.get("MESH_EPSILON", 5e-4)),
-        stop_energy=float(os.environ.get("MESH_STOP_ENERGY", 10.0)),
-        opt_iters=int(os.environ.get("MESH_OPT_ITERS", 80)),
-        max_triangles=int(os.environ.get("MESH_MAX_TRIANGLES", 400_000)),
+        envelope=float(os.environ.get("MESH_EPSILON", "5e-4")),
+        stop_energy=float(os.environ.get("MESH_STOP_ENERGY", "10.0")),
+        opt_iters=int(os.environ.get("MESH_OPT_ITERS", "80")),
+        max_triangles=int(os.environ.get("MESH_MAX_TRIANGLES", "400000")),
     )
     print(
         f"tetrahedralised in {time.time() - t0:.1f} s: {len(mesh.tets):,} tets, "

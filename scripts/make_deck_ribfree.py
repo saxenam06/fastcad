@@ -22,9 +22,9 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from fastcad.deck import forces, reference_points, regions  # noqa: E402
-from fastcad.geometry import tessellate  # noqa: E402
-from fastcad.regions import find_regions  # noqa: E402
+from fastcad.deck import forces, reference_points, regions
+from fastcad.geometry import tessellate
+from fastcad.regions import find_regions
 
 ASSETS = ROOT / "assets" / "target"
 CANVAS = ROOT / "assets" / "target" / "cad" / "housing_ribfree.brep"

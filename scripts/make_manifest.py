@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from fastcad.assets import digest, scan  # noqa: E402
+from fastcad.assets import digest, scan
 
 #: where each group of files came from, for the provenance column
 SOURCES: dict[str, str] = {

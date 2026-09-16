@@ -10,15 +10,14 @@ chorded by forty.
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import matplotlib
 import numpy as np
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.collections import LineCollection  # noqa: E402
+import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
 
 ROOT = Path(__file__).resolve().parents[1]
 MESH = ROOT / "data" / "analysis" / "mesh"

@@ -86,8 +86,6 @@ def strip(a: list[int], b: list[int], ua: np.ndarray, ub: np.ndarray) -> np.ndar
     The rings are walked together in the angular parameter, always advancing whichever is further
     behind, so every node of both is used and the band closes.
     """
-    ia = int(np.argmin(ua))
-    ib = int(np.argmin(ub))
     order_a = np.argsort(ua)
     order_b = np.argsort(ub)
     ring_a = [a[i] for i in order_a]

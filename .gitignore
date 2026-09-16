@@ -19,6 +19,15 @@ data/
 # Credentials. Onshape API keys and model tokens live here.
 .env
 
+# The UI's dependencies and build. `npm install` and `npm run build` make both.
+ui/node_modules/
+ui/dist/
+ui/tsconfig.tsbuildinfo
+
+# Parasolid exports. Nothing in this stack can read them — OCCT has no Parasolid reader — so one
+# in assets/ would claim to be an input the platform uses and is not.
+*.x_t
+
 # What the meshers leave in the working directory
 *_skipped.face
 *_skipped.node

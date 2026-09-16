@@ -9,13 +9,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from fastcad.deck import cylinder_axis, reference_points, regions
 from fastcad.geometry import read_step, tessellate
 from fastcad.regions import find_regions
-
-import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 CANVAS = ROOT / "assets" / "target" / "cad" / "254492_prep_small_adv.step"

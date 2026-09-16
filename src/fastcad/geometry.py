@@ -191,7 +191,10 @@ def surface_mesh(
         gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", curvature)
         try:
             gmsh.model.mesh.generate(2)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - deliberate; see below
+            # gmsh raises on the faces it cannot parametrise but has already meshed the rest, and
+            # the rest is what we want. Which faces it gave up on is counted below and returned,
+            # so the failure is reported as data rather than swallowed.
             pass
 
         tags, coords, _ = gmsh.model.mesh.getNodes()
@@ -236,7 +239,7 @@ def surface_mesh(
     face_count = len(faces_of(shape))
 
     report = {
-        "triangles": int(len(triangles)),
+        "triangles": len(triangles),
         "gmsh_faces": len(centres),
         "unparametrised_faces": int(skipped),
         "cad_faces_matched": int(matched),
@@ -260,7 +263,7 @@ def surface_mesh(
                 built += len(cells)
         report["patched_faces"] = len(rims)
         report["patch_triangles"] = built
-        report["triangles"] = int(len(triangles))
+        report["triangles"] = len(triangles)
     elif missing and patch == "close":
         # Close each hole with its own rim vertices, so the surface becomes watertight without
         # gaining a single node. That is what an exact-preserving volume mesher needs: a closed
@@ -278,7 +281,7 @@ def surface_mesh(
         report["closed_holes"] = len(rings)
         report["fill_triangles"] = int(sum(len(a) for a in added))
         report["unclassified_faces"] = len(missing)
-        report["triangles"] = int(len(triangles))
+        report["triangles"] = len(triangles)
     elif missing and patch:
         # Every face gmsh gave up on is a hole in the surface. Rather than let something invent a
         # lid over it — agenticCAE's MeshFix flattened holes up to 242 mm that way, and biased two
@@ -294,7 +297,7 @@ def surface_mesh(
         face_of_triangle = np.concatenate([face_of_triangle, patched.face_of_triangle[wanted]])
         report["patched_faces"] = len(missing)
         report["patch_triangles"] = int(wanted.sum())
-        report["triangles"] = int(len(triangles))
+        report["triangles"] = len(triangles)
 
     return Surface(vertices, triangles, face_of_triangle, face_count=face_count), report
 

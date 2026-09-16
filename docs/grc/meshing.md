@@ -100,29 +100,33 @@ nothing else we ran detects it.
 
 ## The canvas
 
-`assets/target/cad/housing_ribfree.brep`, 1,753 faces, 121.3737 dm³ — the production casting with
-its ribs removed, and the geometry agenticCAE generated and solved 490 designs on.
+`assets/target/cad/254492_prep_small_adv.step`, 2,592 faces, 127.9036 dm³ — the production
+housing, with its ribs. It is the part the drawing draws and the part the reference solves were
+run on, so a variant of it can be compared with something real.
 
-It is not cleaner than the production export in the way one would expect: 4 unparametrisable faces
-against 5, and the same self-intersection rate. What it has is **no non-manifold edges** where the
-production export has 36–43, and that is the property the volume meshers need.
+**The baseline:** 171,777 TET10 elements, 941,550 unknowns. Peak displacement **0.3658 mm**
+against agenticCAE's recorded **0.3906 mm** for its design e56235 — 6% apart, which is what says
+the chain is right. Reactions balance the applied loads to 0.1 N in 306 kN.
 
-## The baseline
+### The rib-free housing, for comparison
 
-198,577 TET10 elements, 1,067,028 unknowns. Code_Aster, 89 s. Reactions balance the applied loads
-to 0.1 N in 306 kN.
+`reference/geometry/housing_ribfree.brep`, 1,753 faces, 121.3737 dm³ — the same casting with its
+ribs removed, and the geometry agenticCAE generated and solved 490 designs on. Not the canvas, but
+worth keeping in view for two reasons.
 
-Peak displacement **21.32 mm**, concentrated in the annulus around the main bearing bore
-(radius 270→392 mm, exactly that bore's axial extent). That is not a defect: the deleted ribs were
-the load path from that bore to the outer wall, and 330 kN goes through it. Putting that structure
-back is what fastcad is for, so the baseline is deliberately a poor design.
+It is **not cleaner** than the production export in the way one would expect: 4 unparametrisable
+faces against 5, the same self-intersection rate. What it has is **no non-manifold edges** where
+the production export has 36–43 — which is why the five-step chain above was first got working on
+it, and why the production canvas needs curvature sizing on (see below) to avoid creating them.
 
-Treat 21.32 mm as a stiffness index for ranking variants, not a physical prediction — a linear
-solve at that deflection is well past yield locally.
+Solved through the same chain it gives 198,577 elements and **21.32 mm** peak displacement,
+concentrated in the annulus around the main bearing bore (radius 270→392 mm, exactly that bore's
+axial extent). 5% less material, 55× more deflection: the ribs are the entire load path from that
+bore to the outer wall. Treat that number as a stiffness index, not a physical prediction — a
+linear solve at that deflection is well past yield locally.
 
-**The pipeline is validated on ribbed geometry, not on this.** Run on the production canvas it
-gives 0.3658 mm against agenticCAE's recorded 0.3906 mm for its design e56235 — 6% apart. That is
-what says the chain is right; the rib-free number is then the geometry's own answer.
+That contrast is the measure of what rib architecture is worth on this part, which is useful when
+judging what a generated variant has actually achieved.
 
 ## Regions
 

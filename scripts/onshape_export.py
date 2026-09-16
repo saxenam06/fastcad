@@ -41,7 +41,7 @@ SUFFIX = {
 def credentials() -> tuple[str, str]:
     """The API key pair from `.env`."""
     text = (ROOT / ".env").read_text(encoding="utf-8")
-    found = dict(re.findall(r"^\s*(ONSHAPE_\w+)\s*=\s*(.+?)\s*$", text, re.M))
+    found = dict(re.findall(r"^\s*(ONSHAPE_\w+)\s*=\s*(.+?)\s*$", text, re.MULTILINE))
     try:
         return found["ONSHAPE_ACCESS_KEY"], found["ONSHAPE_SECRET_KEY"]
     except KeyError as missing:  # pragma: no cover - configuration, not logic
@@ -98,8 +98,7 @@ def export(url: str, fmt: str, out: Path) -> Path:
     payload.raise_for_status()
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "wb") as handle:
-        for chunk in payload.iter_content(1 << 20):
-            handle.write(chunk)
+        handle.writelines(payload.iter_content(1 << 20))
     print(f"wrote {out} ({out.stat().st_size:,} bytes) in {time.time() - started:.0f} s")
     return out
 
