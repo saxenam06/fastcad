@@ -17,17 +17,54 @@ export interface AssetRow {
 export interface AssetIndex {
   root: string;
   canvas: string | null;
+  extracted: boolean;
   files: AssetRow[];
   selected: number;
   total: number;
 }
 
+export interface FolderRow {
+  name: string;
+  path: string;
+  files: number;
+  bytes: number;
+}
+
+export interface FolderFile {
+  path: string;
+  kind: string;
+  bytes: number;
+  /** What the rule guessed a run would read. A proposal, not a decision. */
+  proposed: boolean;
+  /** What is ticked now: the proposal, or what was chosen last time. */
+  chosen: boolean;
+  note: string;
+}
+
+export interface Folder {
+  name: string;
+  path: string;
+  files: FolderFile[];
+}
+
+/** What the pipeline worked out about one region, at the run that built the mesh. */
 export interface GroupRow {
   name: string;
   triangles: number;
+  kind: "seat" | "bolts" | "other";
   faces: number[];
   diameter_mm: number[];
   force_N: number[] | null;
+  /** The axis the deck's nodes fit, and a point on it. */
+  axis?: number[];
+  axis_point?: number[];
+  /** How far the CAD's axis sat from the deck's, in mm. The match's own error bar. */
+  match_mm?: number;
+  area_mm2?: number;
+  deck_nodes?: number;
+  deck_bands?: { diameter_mm: number; length_mm: number; nodes: number }[];
+  reference?: string;
+  count?: number;
 }
 
 export interface DeckInfo {
@@ -72,8 +109,21 @@ async function skin(path: string): Promise<Skin> {
   return { positions, triangles: tris, groups, nodes, groupNames: header.groups as string[] };
 }
 
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(`${path}: ${response.status} ${await response.text()}`);
+  return (await response.json()) as T;
+}
+
 export const api = {
   assets: () => json<AssetIndex>("/api/assets"),
+  folders: () => json<{ folders: FolderRow[]; extracted: boolean }>("/api/folders"),
+  folder: (name: string) => json<Folder>(`/api/folder/${name}`),
+  extract: (paths: string[]) => post<{ chosen: number }>("/api/extract", { paths }),
   deck: () => json<DeckInfo>("/api/deck"),
   deckSkin: () => skin("/api/deck/mesh"),
 };

@@ -23,7 +23,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from fastcad.deck import forces, reference_points, regions
+from fastcad.deck import coupled, forces, reference_points, regions, tied
 from fastcad.geometry import read_step, tessellate
 from fastcad.meshing import TET10_EDGES
 from fastcad.regions import find_regions
@@ -56,8 +56,10 @@ def main(out: Path) -> int:
     pairs = reference_points(ASSETS / "deck" / "baseline.comm")
     node_of = regions(ASSETS / "deck" / "baseline.med")
 
-    seats = sorted(n for n in found if not n.startswith("BOLT"))
-    bolts = sorted(n for n in found if n.startswith("BOLT"))
+    # Seats and bolts are told apart by what the deck does to them — a distributing coupling or a
+    # rigid tie — not by what they are called.
+    seats = sorted(n for n in coupled(ASSETS / "deck" / "baseline.comm") if n in found)
+    bolts = sorted(n for n in tied(ASSETS / "deck" / "baseline.comm") if n in found)
 
     # Every boundary triangle takes the region that owns its CAD face; -1 means it carries nothing.
     group = np.full(len(boundary), -1, dtype=np.int64)
@@ -90,15 +92,38 @@ def main(out: Path) -> int:
         names=np.array([*seats, "BOLTS"]), linear_nodes=int(mesh["corner_count"]),
     )
 
+    # What the pipeline worked out about each region, kept so the console can show the evidence
+    # rather than just the answer: which CAD faces, how closely their axis agreed with the deck's
+    # nodes, how many nodes there were to fit, and what the deck then applies there.
+    def evidence(name: str) -> dict:
+        match = found[name]
+        region = node_of[name]
+        axis = region.axis if region.axis is not None else np.zeros(3)
+        point = region.axis_point if region.axis_point is not None else region.centre
+        return {
+            "faces": match.faces,
+            "diameter_mm": match.diameters,
+            "axis": [round(float(v), 4) for v in axis],
+            "axis_point": [round(float(v), 2) for v in point],
+            "area_mm2": round(match.area_mm2, 1),
+            "match_mm": round(match.distance_mm, 3),
+            "deck_nodes": int(len(region.points)),
+            "deck_bands": [
+                {"diameter_mm": round(2 * b.radius, 2), "length_mm": round(b.length, 1), "nodes": b.nodes}
+                for b in region.bands
+            ],
+            "reference": pairs[name],
+        }
+
     setup = {
         "seats": {
             name: {
                 "force_N": list(applied[pairs[name]]),
-                "faces": found[name].faces,
-                "diameter_mm": found[name].diameters,
+                **evidence(name),
             }
             for name in seats
         },
+        "bolt_evidence": {name: evidence(name) for name in bolts},
         "bolt_positions": [
             {"xy": [float(node_of[pairs[name]].centre[0]), float(node_of[pairs[name]].centre[1])],
              "faces": found[name].faces}

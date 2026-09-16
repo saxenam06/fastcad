@@ -40,7 +40,12 @@ def pack(nodes: np.ndarray, triangles: np.ndarray, group: np.ndarray, names: lis
     cells = np.ascontiguousarray(remapped.reshape(-1, 3), dtype=np.uint32)
     regions = np.where(group < 0, NONE, group).astype(np.uint16)
 
+    # Padded so what follows starts on a four-byte boundary: a typed array in the browser refuses
+    # an offset that is not a multiple of its element size, and the header's length is whatever
+    # the names happen to make it. Trailing spaces are still valid JSON.
     header = json.dumps({"groups": list(names)}).encode("utf-8")
+    header += b" " * (-len(header) % 4)
+
     out = bytearray()
     out += MAGIC
     out += struct.pack("<III", len(header), len(positions), len(cells))

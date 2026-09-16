@@ -241,12 +241,14 @@ def regions(med: Path | str) -> dict[str, Region]:
 
 #: How the command file ties a region to the single node that stands for it: a bolt through
 #: LIAISON_SOLIDE, a bearing seat through LIAISON_RBE3.
-_TIED = re.compile(r"GROUP_NO=\('([A-Z0-9_]+)',\s*'([A-Z0-9_]+)'\)")
-_COUPLED = re.compile(r"GROUP_NO_MAIT='([A-Z0-9_]+)'.*?GROUP_NO_ESCL='([A-Z0-9_]+)'")
+#: Group names are whatever the engineer called them, which is not necessarily shouted.
+_NAME = r"[A-Za-z0-9_]+"
+_TIED = re.compile(rf"GROUP_NO=\('({_NAME})',\s*'({_NAME})'\)")
+_COUPLED = re.compile(rf"GROUP_NO_MAIT='({_NAME})'.*?GROUP_NO_ESCL='({_NAME})'")
 
 
 _FORCE = re.compile(
-    r"GROUP_NO='([A-Z0-9_]+)',\s*FX=([-\d.eE+]+),\s*FY=([-\d.eE+]+),\s*FZ=([-\d.eE+]+)"
+    rf"GROUP_NO='({_NAME})',\s*FX=([-\d.eE+]+),\s*FY=([-\d.eE+]+),\s*FZ=([-\d.eE+]+)"
 )
 
 
@@ -262,6 +264,21 @@ def forces(comm: Path | str) -> dict[str, tuple[float, float, float]]:
         name: (float(fx), float(fy), float(fz))
         for name, fx, fy, fz in _FORCE.findall(text)
     }
+
+
+def tied(comm: Path | str) -> dict[str, str]:
+    """Regions held rigidly to a single node: the bolts, whatever they are called."""
+    return dict(_TIED.findall(Path(comm).read_text(encoding="utf-8")))
+
+
+def coupled(comm: Path | str) -> dict[str, str]:
+    """Regions whose motion is spread to a reference node: the bearing seats.
+
+    Which is which comes from what the deck does to them — a rigid tie or a distributing coupling
+    — not from what they are called. A deck that names its bolts something else still works.
+    """
+    text = Path(comm).read_text(encoding="utf-8")
+    return {region: point for point, region in _COUPLED.findall(text)}
 
 
 def reference_points(comm: Path | str) -> dict[str, str]:

@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from fastcad.deck import cylinder_axis, reference_points, regions
+from fastcad.deck import coupled, cylinder_axis, reference_points, regions, tied
 from fastcad.geometry import read_step, tessellate
 from fastcad.regions import find_regions
 
@@ -30,16 +30,26 @@ def found():
 
 
 def test_the_deck_drives_six_seats_and_twenty_five_bolts():
-    pairs = reference_points(COMM)
-    assert sum(not n.startswith("BOLT") for n in pairs) == 6
-    assert sum(n.startswith("BOLT") for n in pairs) == 25
+    # Which is which comes from what the deck does — a distributing coupling or a rigid tie — so
+    # this keeps holding if the groups are renamed again.
+    assert len(coupled(COMM)) == 6
+    assert len(tied(COMM)) == 25
 
 
 def test_the_mesh_carries_more_seats_than_the_load_case_uses():
     # Worth pinning: the mesh knows nine bores, the analysis drives six. Quietly meshing all
-    # nine, or quietly dropping the spares, would both be wrong.
-    seats = [n for n in regions(MED) if n.startswith("BORE_")]
-    assert len(seats) == 9
+    # nine, or quietly dropping the spares, would both be wrong. The three spares are the end-cover
+    # registers, which the deck couples but never loads.
+    # The reference nodes carry the same names with `ref_` in front; they are single points, not
+    # bores, so they are not bearing seats.
+    bolts = tied(COMM)
+    bores = [
+        r
+        for r in regions(MED).values()
+        if r.kind == "cylinder" and not r.name.startswith("ref_") and r.name not in bolts
+    ]
+    assert len(bores) == 9
+    assert len(coupled(COMM)) == 6
 
 
 def test_every_region_the_deck_drives_is_found(found):
@@ -47,13 +57,14 @@ def test_every_region_the_deck_drives_is_found(found):
 
 
 def test_seats_resolve_to_the_diameters_the_cad_holds(found):
-    assert {name: match.diameters for name, match in found.items() if name.startswith("BORE")} == {
-        "BORE_MAIN_S2": [541.0],
-        "BORE_MAIN_S3": [360.03],
-        "BORE_AX1_S1": [180.0],
-        "BORE_AX1_S4": [200.0],
-        "BORE_AX2_S2": [180.0],
-        "BORE_AX2_S3": [272.0],
+    """The names are the deck's; the diameters are the CAD's. Neither is written down in src/."""
+    assert {name: found[name].diameters for name in coupled(COMM)} == {
+        "lss_carrier_bearing": [541.0],
+        "lss_thrust_bearing": [360.03],
+        "hss_upwind_bearing": [180.0],
+        "hss_downwind_bearing": [200.0],
+        "ims_upwind_bearing": [180.0],
+        "ims_downwind_bearing": [272.0],
     }
 
 
@@ -62,12 +73,12 @@ def test_seats_sit_on_the_axis_the_deck_puts_them_on(found):
     # millimetre is the honest bar, and a seat that drifted past it should fail rather than pass
     # quietly onto the wrong bore.
     for name, match in found.items():
-        if name.startswith("BORE"):
+        if name in coupled(COMM):
             assert match.distance_mm < 1.0, name
 
 
 def test_bolt_holes_are_found_through_their_reference_nodes(found):
-    bolts = [m for name, m in found.items() if name.startswith("BOLT")]
+    bolts = [found[name] for name in tied(COMM)]
     assert len(bolts) == 25
     assert all(m.matched for m in bolts)
     assert {d for m in bolts for d in m.diameters} <= {26.0, 26.5}

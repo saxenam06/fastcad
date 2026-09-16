@@ -8,10 +8,11 @@
  * so a bearing seat being the right patch of the right bore is something you look at.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AssetIndex, DeckInfo } from "../api/fastcad";
 import { api } from "../api/fastcad";
 import type { Skin } from "../render/fe";
+import { ExtractStage } from "../stage/ExtractStage";
 import { CameraLink, FeStage } from "../stage/FeStage";
 import { ART, PRODUCT, VENDOR, VIEWS } from "./product";
 import type { View } from "./product";
@@ -39,14 +40,36 @@ export function App() {
   const [skin, setSkin] = useState<Skin | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
-  const [view, setView] = useState<View>("input");
+  const [opened, setOpened] = useState<string | null>(null);
+  const [view, setView] = useState<View>("extract");
   const link = useMemo(() => new CameraLink(), []);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    // Failures are shown, not swallowed. A stage that says "loading" forever because a fetch threw
+    // is worse than one that says what went wrong.
     api.assets().then(setAssets).catch((e) => setFailed(String(e)));
-    api.deck().then(setDeck).catch(() => undefined);
-    api.deckSkin().then(setSkin).catch(() => undefined);
+    api.deck().then(setDeck).catch((e) => setFailed(String(e)));
+    api.deckSkin().then(setSkin).catch((e) => setFailed(String(e)));
   }, []);
+
+  useEffect(() => {
+    // Straight to Input if something was extracted before; otherwise there is nothing to show yet.
+    api
+      .assets()
+      .then((a) => {
+        setAssets(a);
+        if (a.extracted) {
+          setView("input");
+          load();
+        }
+      })
+      .catch((e) => setFailed(String(e)));
+  }, [load]);
+
+  const extracted = () => {
+    setView("input");
+    load();
+  };
 
   const colours = useMemo(
     () => (deck ? deck.groups.map((_, i) => REGION_COLOURS[i % REGION_COLOURS.length]) : undefined),
@@ -54,8 +77,16 @@ export function App() {
   );
   const canvas = assets?.canvas?.split("/").pop() ?? "no canvas";
 
+  const open = view !== "extract";
+
   return (
-    <div className="shell" data-open={true} style={{ gridTemplateColumns: "340px minmax(0, 1fr) 0px" }}>
+    <div
+      className="shell"
+      data-open={open}
+      // Only once something is extracted: Extract is one column, and an inline three-column
+      // template would override the rule that makes it so.
+      style={open ? { gridTemplateColumns: "340px minmax(0, 1fr) 0px" } : undefined}
+    >
       <header className="topbar">
         <img className="mark" src={ART.mark} alt="" aria-hidden="true" />
         <span className="lockup">
@@ -77,6 +108,8 @@ export function App() {
               key={entry.id}
               data-active={view === entry.id}
               data-ready={entry.ready}
+              // Input and after need something extracted first; Extract itself is always there.
+              disabled={!entry.ready || (entry.id !== "extract" && !assets?.extracted)}
               onClick={() => entry.ready && setView(entry.id)}
               title={entry.summary}
             >
@@ -87,6 +120,10 @@ export function App() {
         <span className="spacer" />
       </header>
 
+      {!open ? <ExtractStage onExtracted={extracted} /> : null}
+
+      {open ? (
+      <>
       <div className="rail">
         <div className="rail-scroll">
           <section className="block">
@@ -136,28 +173,84 @@ export function App() {
                 <table className="regions">
                   <tbody>
                     {deck.groups.map((g, i) => (
-                      <tr
-                        key={g.name}
-                        className={hovered === i ? "lit" : undefined}
-                        onMouseEnter={() => setHovered(i)}
-                        onMouseLeave={() => setHovered(null)}
-                      >
-                        <td>
-                          <span
-                            className="swatch"
-                            style={{
-                              background: `rgb(${REGION_COLOURS[i % REGION_COLOURS.length].join(",")})`,
-                            }}
-                          />
-                        </td>
-                        <td className="name">{g.name}</td>
-                        <td className="dia">{g.diameter_mm?.length ? `Ø${g.diameter_mm[0]}` : ""}</td>
-                        <td className="tris">{g.triangles.toLocaleString()}</td>
-                      </tr>
+                      <>
+                        <tr
+                          key={g.name}
+                          className={hovered === i ? "lit" : undefined}
+                          onMouseEnter={() => setHovered(i)}
+                          onMouseLeave={() => setHovered(null)}
+                          onClick={() => setOpened(opened === g.name ? null : g.name)}
+                        >
+                          <td>
+                            <span
+                              className="swatch"
+                              style={{
+                                background: `rgb(${REGION_COLOURS[i % REGION_COLOURS.length].join(",")})`,
+                              }}
+                            />
+                          </td>
+                          <td className="name">{g.name}</td>
+                          <td className="dia">{g.diameter_mm?.length ? `Ø${g.diameter_mm[0]}` : ""}</td>
+                          <td className="tris">{g.triangles.toLocaleString()}</td>
+                        </tr>
+                        {opened === g.name ? (
+                          <tr key={`${g.name}-why`}>
+                            <td />
+                            <td colSpan={3}>
+                              <dl className="why">
+                                <dt>matched on</dt>
+                                <dd>
+                                  {g.faces.length} CAD face{g.faces.length === 1 ? "" : "s"}
+                                  {g.faces.length <= 6 ? ` (${g.faces.join(", ")})` : ""}
+                                </dd>
+                                <dt>axis agreed to</dt>
+                                <dd>{g.match_mm?.toFixed(3)} mm</dd>
+                                {g.axis ? (
+                                  <>
+                                    <dt>axis</dt>
+                                    <dd>({g.axis.map((v) => v.toFixed(3)).join(", ")})</dd>
+                                    <dt>through</dt>
+                                    <dd>({g.axis_point?.map((v) => v.toFixed(1)).join(", ")})</dd>
+                                  </>
+                                ) : null}
+                                <dt>fitted from</dt>
+                                <dd>{g.deck_nodes?.toLocaleString()} deck nodes</dd>
+                                {g.deck_bands?.map((b, k) => (
+                                  <>
+                                    <dt key={`b${k}`}>band {k + 1}</dt>
+                                    <dd key={`bv${k}`}>
+                                      Ø{b.diameter_mm} × {b.length_mm} mm, {b.nodes.toLocaleString()} nodes
+                                    </dd>
+                                  </>
+                                ))}
+                                <dt>patch area</dt>
+                                <dd>{g.area_mm2?.toLocaleString()} mm²</dd>
+                                {g.force_N ? (
+                                  <>
+                                    <dt>force</dt>
+                                    <dd>({g.force_N.map((v) => Math.round(v).toLocaleString()).join(", ")}) N</dd>
+                                    <dt>applied at</dt>
+                                    <dd>{g.reference}</dd>
+                                  </>
+                                ) : null}
+                                {g.count ? (
+                                  <>
+                                    <dt>holes</dt>
+                                    <dd>{g.count}, tied to their own reference nodes</dd>
+                                  </>
+                                ) : null}
+                              </dl>
+                            </td>
+                          </tr>
+                        ) : null}
+                      </>
                     ))}
                   </tbody>
                 </table>
-                <p className="hint">{deck.bolts} bolt holes, tied as one group.</p>
+                <p className="hint">
+                  Click a region for what the match was based on. {deck.bolts} bolt holes are driven
+                  as one group.
+                </p>
               </section>
             </>
           ) : null}
@@ -174,7 +267,7 @@ export function App() {
             link={link}
             frameKey="baseline"
             hoveredGroup={hovered}
-            caption={skin ? null : <span>loading the mesh…</span>}
+            caption={skin ? null : <span>{failed ?? "loading the mesh…"}</span>}
           />
         </div>
       </div>
@@ -184,6 +277,8 @@ export function App() {
         <span className="spacer" />
         <span>{deck ? `${deck.mesh.elements.toLocaleString()} elements · ${deck.mesh.unknowns.toLocaleString()} unknowns` : ""}</span>
       </footer>
+      </>
+      ) : null}
     </div>
   );
 }

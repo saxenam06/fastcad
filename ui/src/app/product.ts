@@ -22,9 +22,15 @@ export const PRODUCT = {
  * Every stage is shown whether or not it is built. A shell that hides its unbuilt stages describes
  * a tool; one that shows them describes a product, and says where the work now leads.
  */
-export type View = "input" | "generate" | "qualify" | "dataset";
+export type View = "extract" | "input" | "generate" | "qualify" | "dataset";
 
 export const VIEWS: { id: View; label: string; summary: string; ready: boolean }[] = [
+  {
+    id: "extract",
+    label: "Extract",
+    summary: "Choose the folder a run reads, and tick the files in it that count.",
+    ready: true,
+  },
   {
     id: "input",
     label: "Input",

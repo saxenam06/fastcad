@@ -11,16 +11,33 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Reading CAD and measuring it.
 geometry = [
     "cadquery-ocp==7.9.3.1.1",
     "trimesh>=4.4",
     "rtree>=1.3",
+    "scipy>=1.14",
+]
+# Building the mesh. Every one of these is used by the chain in docs/grc/meshing.md: gmsh meshes
+# each CAD face and fills the volume, pymeshlab measures self-intersections, pymeshfix repairs
+# what the collapse leaves, and pytetwild is the fallback for geometry too poor for gmsh.
+mesh = [
+    "gmsh>=4.13",
+    "pymeshlab>=2023.12",
+    "pymeshfix>=0.17",
+    "pytetwild>=0.4",
+    "fast-simplification>=0.1",
 ]
 deck = [
     "h5py>=3.11",
 ]
 plan = [
     "ortools>=9.11",
+]
+# Fetching the canvas from Onshape, and the figures in docs/.
+tools = [
+    "requests>=2.32",
+    "matplotlib>=3.9",
 ]
 dev = [
     "pytest>=8.3",

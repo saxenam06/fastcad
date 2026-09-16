@@ -27,24 +27,98 @@ SOLVE = ROOT / "data" / "analysis" / "solve"
 app = FastAPI(title="fastcad")
 
 
-@app.get("/api/assets")
-def assets() -> dict:
-    """Every file in `assets/`, and which ones a run actually reads."""
+#: What was chosen at Extract. Absent until somebody has chosen, and then it is the answer — a run
+#: reads what the engineer ticked, not what a rule in this file guessed.
+CHOSEN = ROOT / "data" / "analysis" / "chosen.json"
+
+
+def _chosen() -> set[str] | None:
+    if not CHOSEN.exists():
+        return None
+    try:
+        return set(json.loads(CHOSEN.read_text(encoding="utf-8"))["paths"])
+    except (ValueError, KeyError):
+        return None
+
+
+@app.get("/api/folders")
+def folders() -> dict:
+    """The folders under `assets/` that could be extracted, and how much is in each."""
+    out = []
+    for path in sorted(p for p in ASSETS.iterdir() if p.is_dir()):
+        index = scan(ASSETS)
+        inside = [a for a in index.assets if a.path.parts[0] == path.name]
+        out.append({
+            "name": path.name,
+            "path": f"assets/{path.name}",
+            "files": len(inside),
+            "bytes": sum(a.size_bytes for a in inside),
+        })
+    return {"folders": out, "extracted": CHOSEN.exists()}
+
+
+@app.get("/api/folder/{name}")
+def folder(name: str) -> dict:
+    """What is in one folder, with the files a run would read already ticked.
+
+    The ticks are a proposal, not a decision: the rule that makes them reads extensions and
+    locations, which is a guess about intent. Extract records what was actually chosen.
+    """
     index = scan(ASSETS)
+    inside = [a for a in index.assets if a.path.parts[0] == name]
+    if not inside:
+        raise HTTPException(404, name)
+    already = _chosen()
     return {
-        "root": "assets",
-        "canvas": load_config(ASSETS).get("canvas"),
+        "name": name,
+        "path": f"assets/{name}",
         "files": [
             {
                 "path": a.path.as_posix(),
                 "kind": a.kind,
                 "bytes": a.size_bytes,
-                "in_run": a.selected,
+                "proposed": a.selected,
+                "chosen": a.selected if already is None else a.path.as_posix() in already,
+                "note": a.note,
+            }
+            for a in inside
+        ],
+    }
+
+
+@app.post("/api/extract")
+def extract(body: dict) -> dict:
+    """Record what a run will read. Nothing else in the product decides this."""
+    paths = [str(p) for p in body.get("paths", [])]
+    if not paths:
+        raise HTTPException(400, "nothing chosen")
+    CHOSEN.parent.mkdir(parents=True, exist_ok=True)
+    CHOSEN.write_text(json.dumps({"paths": paths}, indent=1), encoding="utf-8")
+    return {"chosen": len(paths)}
+
+
+@app.get("/api/assets")
+def assets() -> dict:
+    """Every file in `assets/`, and which ones a run actually reads."""
+    index = scan(ASSETS)
+    already = _chosen()
+    return {
+        "root": "assets",
+        "canvas": load_config(ASSETS).get("canvas"),
+        "extracted": already is not None,
+        "files": [
+            {
+                "path": a.path.as_posix(),
+                "kind": a.kind,
+                "bytes": a.size_bytes,
+                "in_run": a.selected if already is None else a.path.as_posix() in already,
                 "note": a.note,
             }
             for a in index.assets
         ],
-        "selected": sum(a.selected for a in index.assets),
+        "selected": sum(
+            (a.selected if already is None else a.path.as_posix() in already) for a in index.assets
+        ),
         "total": len(index.assets),
     }
 
@@ -73,14 +147,36 @@ def deck() -> dict:
             {
                 "name": name,
                 "triangles": int((group == k).sum()),
-                "faces": setup["seats"].get(name, {}).get("faces", []),
-                "diameter_mm": setup["seats"].get(name, {}).get("diameter_mm", []),
-                "force_N": setup["seats"].get(name, {}).get("force_N"),
+                # Everything the pipeline derived for this region, so the console shows the
+                # evidence and not only the conclusion. A bolt group is the 25 holes together, so
+                # it carries the evidence of the first of them and a count.
+                **_evidence(setup, name),
             }
             for k, name in enumerate(names)
         ],
         "bolts": len(setup.get("bolt_positions", [])),
     }
+
+
+def _evidence(setup: dict, name: str) -> dict:
+    seat = setup["seats"].get(name)
+    if seat is not None:
+        return {"kind": "seat", **seat}
+    bolts = setup.get("bolt_evidence", {})
+    if name == "BOLTS" and bolts:
+        first = next(iter(bolts.values()))
+        return {
+            "kind": "bolts",
+            "count": len(bolts),
+            "faces": sorted({f for b in bolts.values() for f in b["faces"]}),
+            "diameter_mm": sorted({d for b in bolts.values() for d in b["diameter_mm"]}),
+            "match_mm": round(max(b["match_mm"] for b in bolts.values()), 3),
+            "area_mm2": round(sum(b["area_mm2"] for b in bolts.values()), 1),
+            "deck_nodes": sum(b["deck_nodes"] for b in bolts.values()),
+            "axis": first["axis"],
+            "force_N": None,
+        }
+    return {"kind": "other"}
 
 
 @app.get("/api/deck/mesh")
