@@ -1,0 +1,49 @@
+[project]
+name = "fastcad"
+version = "0.1.0"
+description = "Agent-native generator of manufacturing-valid, CAE-checked variants of production CAD"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "numpy>=2.0",
+    "fastapi>=0.115",
+    "uvicorn>=0.32",
+    "pydantic>=2.9",
+]
+
+[project.optional-dependencies]
+geometry = [
+    "cadquery-ocp==7.9.3.1.1",
+    "trimesh>=4.4",
+    "rtree>=1.3",
+]
+deck = [
+    "h5py>=3.11",
+]
+plan = [
+    "ortools>=9.11",
+]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.7",
+    "mypy>=1.13",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fastcad"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+src = ["src", "tests"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src/fastcad"]
