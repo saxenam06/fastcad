@@ -199,7 +199,11 @@ Also: main bearing SRB 24076 CC W33; conduit bearing 6016-2RS1.
 - **Rotor weight:** gives −158 kNm and −122 kN at the main bearing (58190 p21/12).
 - **IEC simulated extremes:** torque 401 kNm, thrust 257 kN, My 467.5 kNm (47773 p21/15).
 
-## Proposed `assets/` layout
+## The `assets/` layout
+
+**Built on 2026-09-16** (M0 step 3): 307 files, 181 MB. It follows the proposal below, with two changes: every GB3 and GB2 drawing was copied rather than a hand-picked subset, since the Input Console decides what a run reads; and the native SolidWorks CAD was not copied, because Q14 takes keep-outs from the gear and bearing tables instead. The deck's 134 MB results file stays in fastcae. See `assets/README.md` and `assets/MANIFEST.csv`.
+
+### The proposal, as first written
 
 Nothing has been copied yet. Copying is an M0 task.
 

@@ -19,7 +19,7 @@ Status: planning is complete. The plan of record is [fastcad-v1-plan.md](fastcad
 2. **Scaffold the package.**
    - A Python 3.12/uv package with a test skeleton.
    - Port modules from fastcae and agenticCAE, with their tests ([prior-work](prior-work/fastcae-and-agenticcae.md)).
-3. **Fill in `assets/`.**
+3. **Fill in `assets/`. Done 2026-09-16.** `assets/target/` holds only engineering artifacts: `cad/` (the canvas), `drawing/` and `deck/` (mesh and setup). Everything else, including the YAML notes written during the research, went to `reference/`, which no run reads. Whatever the artifacts don't say is derived by the code or asked at sign-off; the gap list is in the plan, section 2. `fastcad.toml` names the canvas, and `MANIFEST.csv` records digests. Original plan:
    - Copy the core set from `cae-data`: drawings, reports, and `tech-data/*.yaml` with a source and page for every value.
    - Add `MANIFEST.csv` ([grc/data-inventory.md](grc/data-inventory.md)).
 4. **Build the production baseline deck.** Nothing about the loads is re-derived.
@@ -42,7 +42,10 @@ Status: planning is complete. The plan of record is [fastcad-v1-plan.md](fastcad
    - CGM, if Spatial grants an evaluation.
 
    Parasolid and CGM heal imported geometry as they read it, so the winner decides how much repair we actually need ([research/platforms-and-kernels.md](research/platforms-and-kernels.md)).
-7. **Repair, scoped to what the winning kernel still fails on**, plus the silent-failure check (validity, expected volume change, nothing changed outside the edited region via geometric signature matching, mesh consistency).
+7. **Repair, scoped to what the winning kernel still fails on**, plus the silent-failure check.
+   - **Settled 2026-09-16:** the canvas is `254492_prep_small_adv.step`. It removes the 24.6% silent volume loss at the HSS plane and most defects, and behaves identically in every operation test.
+   - **Also settled:** rib operators build their own root fillet, because filleting a contour after fusing fails whenever it crosses the existing blends.
+   - Remaining detail below (validity, expected volume change, nothing changed outside the edited region via geometric signature matching, mesh consistency).
    - The user's closed solid stays the canvas. Its known defects: 469 edges with tolerance above 0.1 mm, 26 slivers, 3 negative-area faces, 24 self-intersecting pieces, and the 10° cone (face 1904) that makes whole-body cuts silently lose volume.
    - **Optional, 5 minutes:** one tighter Onshape re-export, to see whether the loose tolerances disappear without any repair. If it doesn't help, we repair the current file.
 8. **First onboarding pass.**

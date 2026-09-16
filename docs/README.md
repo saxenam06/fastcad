@@ -13,7 +13,8 @@ fastcad is an agent-native product. It edits a customer's existing production CA
 | [decisions/decision-rationale.md](decisions/decision-rationale.md) | For each key decision (R1–R24): why we took it, the evidence and its source, how others do it differently, and what would make us revisit it |
 | [inputs/user-vision-and-notes.md](inputs/user-vision-and-notes.md) | What the user brought to the session: the original brief, their two long sets of notes, the posts they shared later, and every link they supplied |
 | [fastcad-positioning.md](fastcad-positioning.md) | Our approach in five points, and how fastcad compares with 21 papers and tools, commercial platforms and startups: what we take from them, what we skip |
-| [next-steps.md](next-steps.md) | What happens next: the confirmation, the M0 steps, M1–M5, and the user's action items |
+| [status.md](status.md) | **Where the work stands right now**, what is settled and how, and what happens next |
+| [next-steps.md](next-steps.md) | The step list: the M0 steps in order, M1–M5, and the user's action items |
 
 ## Research
 

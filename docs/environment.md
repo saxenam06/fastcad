@@ -61,7 +61,8 @@ The STEP analysis used the agenticCAE environment in read-only mode (`python -B`
 - **`C:\Work\cae-data`:** the NREL GRC GB2 and GB3 datasets. The README says `D:\Work\cae-data`, but the data is actually on C:.
   - Quarantined, never to be opened or copied: anything matching `*54530*` (the GRC round-robin answer key) and the OEDI-738 vibration data.
   - This copy is incomplete: GB2 has no `cad\` folder, and GB3 is missing some TDMS zips and `254719.SLDDRW`. See [grc/data-inventory.md](grc/data-inventory.md).
-- **`C:\Work\fastcad\assets\`:** `254492_0_closed_volume.step` and `254492.pdf`.
+- **`C:\Work\fastcad\assets\`:** the product's only input folder, kept small on purpose. 9 files, 47 MB: `target/cad/` (the canvas), `target/drawing/`, `target/deck/` (mesh and setup), `target/tech-data/` (the YAML data with a source per value). `fastcad.toml` names the canvas; `MANIFEST.csv` lists every file with its digest. See `assets/README.md`.
+- **`C:\Work\fastcad\reference\`:** the library no run reads: earlier CAD exports, 286 GB3 and GB2 drawings, 8 NREL reports, the rib-free housing. About 128 MB, kept out of git, rebuilt by `scripts/make_reference.py`.
 - **`C:\Work\fastcae\assets\GRC_Gearbox_Housing\`:** the rib-free `housing_baseline.brep`, the `baseline.*` deck (meshed on the rib-free housing), and `project.json`.
 
 ## Outputs that will be deleted if not saved

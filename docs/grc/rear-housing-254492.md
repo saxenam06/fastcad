@@ -2,7 +2,7 @@
 
 **Research date:** 2026-09-15.
 
-**Inputs:** `assets/254492_0_closed_volume.step` and `assets/254492.pdf`, both read-only.
+**Inputs:** the STEP and the drawing, read-only. Since 2026-09-16 they live at `assets/target/254492_0_closed_volume.step` and `assets/target/254492.pdf`, alongside the two re-exports.
 
 **Tooling:** the `C:\Work\agenticCAE\.venv` interpreter, read-only (`python -B`), with cadquery-ocp 7.9.3 (OCCT 7.9), pyvista, pymupdf and trimesh with Embree. Nothing was installed.
 
@@ -161,6 +161,41 @@ These are shown to the user to decide (Q23):
 - Local additive edits (ribs, pads, bosses on single faces) are likely to work, provided every step is checked with the validity check plus a volume check.
 - Cuts, shelling or splits across the body are unreliable unless face 1904 and the other defect spots are rebuilt.
 - The researcher suggested using the STEP only for the frozen skeleton and rebuilding the cast body from rules. **Not adopted:** the user chose to generate on the production housing (Q2).
+
+### The 2026-09-16 re-exports, and what they changed
+
+The user re-exported the same closed solid from Onshape with two preprocessing settings. Onshape has no tolerance control for STEP; preprocessing is the only knob.
+
+**Defect counts** (`data/analysis/step-analysis/export_compare.json`):
+
+| Check | original | `prep_small_adv` ("remove small entities, advanced") | `prep_auto` (HealAndSew) |
+|---|---:|---:|---:|
+| Self-intersecting pieces | 24 | **1** | 24 |
+| Other self-intersection alerts | 3 + 9 | 0 + 9 | 3 + 9 |
+| Faces under 0.1 mm² | 23 | **6** | 23 |
+| Worst edge tolerance | 0.43 mm | **0.27 mm** | 0.43 mm |
+| Edges looser than 0.1 mm | 469 | 490 | 469 |
+| Edges under 0.05 mm | 147 | 233 | 147 |
+| Faces | 2,167 | 2,592 | 2,167 |
+| Volume | 127.917 dm³ | 127.904 dm³ | 127.917 dm³ |
+
+`prep_auto` is identical to the original on every measure: HealAndSew changed nothing.
+
+**Operation tests** (`ops_compare.json`, `ops_compare2.json`), run at the same physical site on both files:
+
+| Test | original | `prep_small_adv` |
+|---|---|---|
+| Rib fillet R8 on a clean wall (control) | passes | passes |
+| Rib fillet crossing the R25 blends, R8 / R5 / R3 | fails (2, 2, 1 faulty contours) | fails, identically |
+| Whole-body cuts at 29 planes | 1 of 29 | 0 of 29 |
+| Silent volume loss at the HSS plane, y = 520 | **−24.6%** | **+0.02%: gone** |
+
+**What follows:**
+1. **Cleaning the file doesn't change how operations behave.** The blend-crossing fillets fail identically, because this is OpenCascade's documented fillet limit, not a defect in the file.
+2. **It does remove the one catastrophic silent failure**, the 24.6% volume loss when cutting at the HSS plane.
+3. **Whole-body cuts are unreliable on both files.** The failures are validity failures, with volume errors of 0.01–0.15%. Operators must cut locally only.
+4. **Decision: `prep_small_adv` becomes the canvas**, pending the kernel bake-off. Same behaviour, far fewer defects, no 25% trap. It costs 425 more faces and 0.01% of the volume.
+5. **Operator design rule:** build ribs with their root fillet already in the shape, instead of filleting the contour after fusing. That avoids the failing case whichever kernel wins.
 
 **What the plan does about it:**
 - repair the canvas after a tighter Onshape re-export (Q22);

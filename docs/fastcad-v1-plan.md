@@ -28,12 +28,17 @@ fastcad is general. The NREL GRC rear housing (drawing 254492) is the first demo
 5. **The runtime agent asks about choices that depend on the requirement.** Examples: may existing ribs change, is this a rework or a new casting, is there a new torque. None of this is hard-coded.
 6. **The agent never invents loads, material values or limits.** These come from the baseline deck, from inputs the engineer has signed off, or from a documented derivation method.
 7. **Local first.** Everything runs on the laptop (RTX 5060 8 GB, 16 GB RAM), with cloud only when needed. The LLM sees derived data (graphs, specs, metrics, renders), never raw customer STEP. The model provider can be swapped.
+8. **Names carry meaning, and we keep them** (added 2026-09-16). CAE engineers already label their decks: bearing bores, mountings, bolts, holes, PIDs, node and element sets. Those names are an input we assume exists, and they are the platform's best source of context about what each region *is*. So:
+   - the deck's names are read as they are, carried through every variant, and shown to the agent and the user unchanged;
+   - fastcad's own decks use the same conversational names, never positional codes;
+   - a deck whose names are codes is a weak input, and the sign-off is where an engineer supplies the real ones, once.
+9. **Inputs are engineering artifacts, and gaps are asked, never assumed** (added 2026-09-16 at the user's instruction). The platform reads only **drawings, CAD and solver decks**, and every file it reads is visible in `assets/`. Anything else is either **derived by our code** or **asked of the engineer at sign-off**, where they label it. A value from a report or prior analysis may be *proposed* at sign-off with its source shown, and never used silently. Before a large campaign, the system lists the gaps that must be filled first. Facts are never hardcoded to make a step appear to work.
 
 ## 2. Inputs
 
 | Input | For the demo | Notes |
 |---|---|---|
-| Baseline CAD | `254492_0_closed_volume.step`: the production housing, with its ribs. You closed it in Onshape. | Re-exported from Onshape at a tighter tolerance before use (Q22). |
+| Baseline CAD | `assets/target/254492_prep_small_adv.step`: the production housing with its ribs, closed by the user in Onshape and re-exported with "remove small entities". **This is the canvas**, named in `assets/fastcad.toml`. The first export and the HealAndSew one sit beside it for the record. |
 | Drawings | 254492 rev J, 4 sheets | A rework drawing. Note 1: "MATERIAL: EXISTING HOUSING 251342 (Rev E)". |
 | Baseline solver deck | Code_Aster deck for the production housing (section 7.1) | Material, supports, couplings, loads and outputs all come from here. |
 | Assembly context | Gear and bearing tables and drawings from `cae-data` (GB3) | Keep-out envelopes are derived from these tables (Q14). Neighbouring parts are exported to STEP only if the tables prove too limiting. |
@@ -41,7 +46,44 @@ fastcad is general. The NREL GRC rear housing (drawing 254492) is the first demo
 | Part for the generality test | 254506 front housing: STEP plus drawing | Needs converting and closing in Onshape. Its deck is drafted by analogy with the rear housing's (Q27). |
 | Moved-interface answer key | GB2 housing 251342 rev E: STEP plus drawing | Used for the GB2 → GB3 rework test (Q24). |
 
-**`assets/` layout** (filled in during M0):
+**`assets/` layout.** Built on 2026-09-16, and deliberately small: 9 files, so what a run reads is visible at a glance.
+
+```
+assets/
+  fastcad.toml          names the canvas
+  target/cad/           the part being edited
+  target/drawing/       its drawing
+  target/deck/          the solver deck: mesh and setup
+```
+
+Everything else the project holds — earlier CAD exports, 286 drawings of neighbouring parts, 8 NREL reports, the rib-free housing, and the YAML notes written during the research — sits in `reference/`, which no run reads. When a run needs one, it is copied into `target/` and becomes visible in the Input Console.
+
+### What the artifacts don't say, and how it gets filled
+
+Per principle 8, each of these is either derived by the code or asked at sign-off. For the GRC housing:
+
+Reviewed with the user on 2026-09-16, and the list is shorter than it first looked. **The deck is the truth for the physics, and the CAD for the geometry.**
+
+| Question | Answer |
+|---|---|
+| Which bearing sits in which seat? | **Not needed for variants.** The deck couples each seat and applies its load; the operator only needs the cylinder to be frozen. It matters only when a campaign changes that bore, and then the requirement states the new bearing. |
+| Ratings and load cases? | **Not needed.** The deck defines the load case. A different case means a different deck, which is an input change. |
+| The mounting scheme? | **Not needed.** The deck's supports and couplings are the setup: held bolt holes, coupling reference nodes, seat groups, all with their own names. |
+| The carrier-share assumption? | **Not needed.** The deck is the truth, and we start from the load case as it stands. Changing it means changing the deck. |
+| The material grade? | **Not needed.** The deck gives E, ν and ρ. A grade would matter only for an absolute stress limit, and that limit comes from the brief. |
+| Test measurements and NREL's cautions? | **Not needed now.** Background for fastCAE later, not an input to generating variants. |
+| Gear data? | **Not needed for frozen-interface variants.** It is needed to re-derive loads when a bearing moves (Q30), and the gear drawings hold it, so that becomes a drawing-extraction job when we get there. |
+
+**What genuinely still has to come from outside the artifacts:**
+
+| What | How it gets filled |
+|---|---|
+| The brief's targets and limits: mass target, tilt limit, stress limit | **The Requirement Spec**, through the runtime agent's questions. This is the requirement itself. |
+| A foundry rule sheet | **Optional.** Without one, the rules calibrated from the baseline apply (Q21). |
+| Keep-out for features added inside the cavity | The CAD holds only the housing. The conservative rule, "do not intrude past where metal already is", is **measured from the CAD**. Only a campaign that wants to go further needs an answer from the engineer. |
+| Conversational names, where the deck has none | The deck's names are the source (principle 8). The stand-in deck we inherited uses positional codes (`BORE_AX1_S4`, `BORE_MAIN_S2`), which tell the agent nothing. **The production deck built in M0 step 4 replaces them with names an engineer would use** — `hss_rear_bearing_seat`, `carrier_adaptor_seat`, `ring_flange_bolt_07` — proposed by the system and confirmed once at sign-off. From then on those are the only names: they appear in the UI, in the decks, in the agent's reasoning and in the results, and everyone speaks them. The old codes are not part of the platform's vocabulary; where the M0 validation needs to line results up against the earlier reference solve, that correspondence is a note in the validation record, not a feature. |
+
+**The original proposal** (kept for the record):
 - `target/`: STEP, drawing, baseline deck.
 - `context/`: GB3 neighbourhood drawings, GB2 parent drawings, NREL reports.
 - `tech-data/`: `grc_techdata.yaml` and `interfaces.yaml`, where every value carries its source and page.

@@ -241,6 +241,22 @@ The lanes are OpenCascade (OCCT), Parasolid via Onshape, and CGM under evaluatio
   - CAD-Recode, BRepNet and the Text2CAD data are non-commercial ([methods-landscape.md](../research/methods-landscape.md)).
 - **Revisit:** keep watching AutoBrep and DualBrep completion, Zoo's STEP-to-KCL conversion, and Autodesk's neural CAD.
 
+### R25. The canvas is `254492_prep_small_adv.step`
+
+- **Decided by:** measurement on 2026-09-16, after the user's re-exports.
+- **Why:** it behaves the same as the original in every operation test, has far fewer defects (self-intersecting pieces 24 → 1, slivers 23 → 6, worst edge tolerance 0.43 → 0.27 mm), and it removes the one catastrophic silent failure: the 24.6% volume loss when cutting at the HSS plane.
+- **Cost:** 425 more faces, and 0.01% of the volume.
+- **Evidence:** [../grc/rear-housing-254492.md](../grc/rear-housing-254492.md), and `data/analysis/step-analysis/export_compare.json`, `ops_compare.json`, `ops_compare2.json`.
+- **Revisit:** if the kernel bake-off's winner prefers the original, since Parasolid and CGM heal geometry as they import it.
+
+### R26. Ribs carry their own root fillet; we never fillet a contour after fusing
+
+- **Decided by:** measurement on 2026-09-16.
+- **Why:** filleting the root contour after a fuse fails whenever that contour crosses the existing blends, which is most of this housing. It failed at R8, R5 and R3 on both files, while the same operation on a clean wall passes.
+- **The rule:** the rib operator builds the fillet into the solid it fuses, so no post-fuse fillet is needed on a crossing contour.
+- **Evidence:** OpenCascade's documented limits (a contour ending where 4 or more edges meet, or a fillet not contained in its limiting face), plus our own trials.
+- **Revisit:** if a kernel in the bake-off fillets crossing contours reliably, we may allow both routes.
+
 ### R24. Research ideas adopted into the plan (rev B)
 
 - **Decided by:** research, pending confirmation.
