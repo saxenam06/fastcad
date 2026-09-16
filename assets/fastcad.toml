@@ -1,0 +1,7 @@
+# What a run reads from this folder. The Input Console shows these choices and lets you change them.
+
+# The CAD a run edits. Decided 2026-09-16 by measurement: this export behaves the same as the
+# original in every operation test, has far fewer defects (self-intersecting pieces 24 -> 1,
+# slivers 23 -> 6, worst edge tolerance 0.43 -> 0.27 mm), and it removes the silent 24.6% volume
+# loss when cutting at the HSS plane. See docs/grc/rear-housing-254492.md.
+canvas = "target/cad/254492_prep_small_adv.step"

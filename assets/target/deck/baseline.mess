@@ -1,0 +1,619 @@
+setting '--memory' value to 6300.00 MB (keyword RESERVE_MEMOIRE)
+copying '/home/saxenam/aster_runs/baseline-b48d8249/baseline.med' to 'fort.20'...
+Ouverture en écriture du fichier ./vola.1
+
+<INFO> Démarrage de l'exécution.
+
+                       -- CODE_ASTER -- VERSION : DÉVELOPPEMENT (unstable) --                       
+                               Version 18.0.12 modifiée le 03/04/2026                               
+                                    révision n/a - branche 'n/a'                                    
+                                     Copyright EDF 1991 - 2026                                      
+                                                                                                    
+                              Exécution du : Mon Sep 14 19:29:53 2026                               
+                                Nom de la machine : LAPTOP-IR8VEG53                                 
+                                        Architecture : 64bit                                        
+                                    Type de processeur : x86_64                                     
+       Système d'exploitation : Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39       
+                                  Langue des messages : C (UTF-8)                                   
+                                    Version de Python : 3.12.14                                     
+                                      Version de NumPy : 2.4.6                                      
+                                     Parallélisme MPI : inactif                                     
+                                    Parallélisme OpenMP : actif                                     
+                              Nombre de processus OpenMP utilisés : 1                               
+                                Version de la librairie HDF5 : 2.1.0                                
+                                Version de la librairie MED : 4.2.0                                 
+                               Version de la librairie MFront : 5.1.0                               
+                               Version de la librairie MUMPS : 5.8.2                                
+                                  Librairie PETSc : non disponible                                  
+                              Version de la librairie SCOTCH : 7.0.11                               
+
+starting the execution...
+Valeur initiale du temps CPU maximum =   900 secondes
+  Valeur du temps CPU maximum passé aux commandes =   810 secondes
+  Réserve CPU prévue = 90 secondes
+
+Ouverture en écriture du fichier ./glob.1
+
+Ouverture en écriture du fichier ./vola.1
+
+Ouverture en lecture du fichier /home/saxenam/.local/share/mamba/envs/aster/lib/elem.1
+
+Nom de la base                          :  ELEMBASE
+     Créée avec la version                   :  18.00.12
+     Nombre d'enregistrements utilisés       :  49
+     Nombre d'enregistrements maximum        :  512
+     Nombre d'enregistrements par fichier    :  512
+     Longueur d'enregistrement (octets)      :  819200
+     Nombre d'identificateurs utilisés       :  123
+     Taille maximum du répertoire            :  300
+     Pourcentage d'utilisation du répertoire :  41 %
+
+Ouverture en lecture du fichier /home/saxenam/.local/share/mamba/envs/aster/lib/elem.1
+
+Nom de la base                          :  ELEMBASE
+     Nombre d'enregistrements utilisés       :  49
+     Nombre d'enregistrements maximum        :  512
+     Nombre d'enregistrements par fichier    :  512
+     Longueur d'enregistrement (octets)      :  819200
+     Nombre total d'accès en lecture         :  67
+     Volume des accès en lecture             :         52.34 Mo.
+     Nombre total d'accès en écriture        :  0
+     Volume des accès en écriture            :          0.00 Mo.
+     Nombre d'identificateurs utilisés       :  123
+     Taille maximum du répertoire            :  300
+     Pourcentage d'utilisation du répertoire :  41 %
+
+Relecture des catalogues des éléments faite.
+
+Fin de lecture (durée  0.036271  s.) 
+
+                      Mémoire limite pour l'allocation dynamique : 6812.06 Mo                       
+                         ajouté à l'initialisation du processus : 554.68 Mo                         
+                               Limite cible du processus : 7366.73 Mo                               
+                         Taille limite des fichiers d'échange : 2048.00 Go                          
+# Mémoire (Mo) :   554.68 /   545.58 /   212.13 /   185.37 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0001   user+syst:        0.02s (syst:        0.15s, elaps:        0.17s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt15
+# ----------------------------------------------------------------------------------------------
+# Commande #0002 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 15
+mesh = LIRE_MAILLAGE(FORMAT='MED',
+                     INFO=1,
+                     INFO_MED=0,
+                     PARTITIONNEUR='SANS',
+                     UNITE=20,
+                     VERI_MAIL=_F(APLAT=0.001,
+                                  VERIF='OUI'))
+
+Nom MED du maillage : 00000001
+
+
+------------ MAILLAGE 00000001 - IMPRESSIONS NIVEAU  1 ------------
+
+
+NOMBRE DE NOEUDS                      377270
+
+NOMBRE DE MAILLES                     209075
+                              POI1                   31
+                              TETRA10            209044
+
+NOMBRE DE GROUPES DE NOEUDS               65
+
+NOMBRE DE GROUPES DE MAILLES               2
+
+--------------------------------------------------------------------------------
+
+Vérification du maillage.
+
+# Résultat commande #0002 (LIRE_MAILLAGE): mesh ('<00000001>') de type <Mesh>
+# Mémoire (Mo) :  1550.17 /   606.73 /   267.61 /   232.27 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0002   user+syst:        1.72s (syst:        0.41s, elaps:        2.00s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt17
+# ----------------------------------------------------------------------------------------------
+# Commande #0003 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 17
+model = AFFE_MODELE(AFFE=(_F(GROUP_MA='BULK',
+                             MODELISATION='3D',
+                             PHENOMENE='MECANIQUE'),
+                          _F(GROUP_MA='REFPT',
+                             MODELISATION='DIS_TR',
+                             PHENOMENE='MECANIQUE')),
+                    DISTRIBUTION=_F(METHODE='SOUS_DOMAINE',
+                                    PARTITIONNEUR='METIS'),
+                    INFO=1,
+                    MAILLAGE=mesh,
+                    VERI_FORMULATION_IFS='OUI',
+                    VERI_JACOBIEN='OUI',
+                    VERI_NORM_IFS='OUI',
+                    VERI_PLAN='OUI')
+
+Sur les 209075 mailles du maillage 00000001, on a demandé l'affectation de 209075, on a pu en
+affecter 209075.
+Modélisation     Formulation      Type maille  Élément fini     Nombre
+DIS_TR           _                POI1         MECA_DIS_TR_N    31
+3D               _                TETRA10      MECA_TETRA10     209044
+#2      Calculs elementaires et assemblages               CPU (USER+SYST/SYST/ELAPS):      0.14      0.01      0.12
+# Résultat commande #0003 (AFFE_MODELE): model ('<00000002>') de type <Model>
+# Mémoire (Mo) :  1550.17 /   771.91 /   283.44 /   244.66 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0003   user+syst:        0.82s (syst:        0.02s, elaps:        0.78s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt25
+# ----------------------------------------------------------------------------------------------
+# Commande #0004 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 25
+points = AFFE_CARA_ELEM(DISCRET=_F(CARA='K_TR_D_N',
+                                   GROUP_MA='REFPT',
+                                   REPERE='GLOBAL',
+                                   SYME='OUI',
+                                   VALE=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)),
+                        INFO=1,
+                        MODELE=model)
+
+
+     LE MODELE 00000002 CONTIENT : 
+                                       31 ELEMENT(S) DISCRET         
+                                   209044 ELEMENT(S) MASSIF          
+#2      Calculs elementaires et assemblages               CPU (USER+SYST/SYST/ELAPS):      0.00      0.00      0.00
+# Résultat commande #0004 (AFFE_CARA_ELEM): points ('<00000003>') de type
+<ElementaryCharacteristics>
+# Dépend de :
+# - model ('<00000002>') de type <Model>
+# Mémoire (Mo) :  1550.17 /   771.91 /   284.94 /   244.66 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0004   user+syst:        0.13s (syst:        0.01s, elaps:        0.13s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt32
+# ----------------------------------------------------------------------------------------------
+# Commande #0005 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 32
+iron = DEFI_MATERIAU(ELAS=_F(B_ENDOGE=0.0,
+                             COEF_AMOR=1.0,
+                             E=169000.0,
+                             K_DESSIC=0.0,
+                             NU=0.275,
+                             RHO=7.2e-09),
+                     INFO=1)
+
+# Résultat commande #0005 (DEFI_MATERIAU): iron ('<00000004>') de type <Material>
+# Mémoire (Mo) :  1550.17 /   771.91 /   284.94 /   244.66 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0005   user+syst:        0.03s (syst:        0.00s, elaps:        0.03s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt34
+# ----------------------------------------------------------------------------------------------
+# Commande #0006 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 34
+materials = AFFE_MATERIAU(AFFE=_F(GROUP_MA='BULK',
+                                  MATER=iron),
+                          INFO=1,
+                          MAILLAGE=mesh)
+
+# Résultat commande #0006 (AFFE_MATERIAU): materials ('<00000005>') de type <MaterialField>
+# Mémoire (Mo) :  1550.17 /   771.91 /   284.94 /   244.66 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0006   user+syst:        0.02s (syst:        0.00s, elaps:        0.02s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt41
+# ----------------------------------------------------------------------------------------------
+# Commande #0007 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 41
+supports = AFFE_CHAR_MECA(DDL_IMPO=_F(DX=0.0,
+                                      DY=0.0,
+                                      DZ=0.0,
+                                      GROUP_NO=('REF_BOLT_00', 'REF_BOLT_01', 'REF_BOLT_02', 'REF_BOLT_03', 'REF_BOLT_04', 'REF_BOLT_05', 'REF_BOLT_06', 'REF_BOLT_07', 'REF_BOLT_08', 'REF_BOLT_09', 'REF_BOLT_10', 'REF_BOLT_11', 'REF_BOLT_12', 'REF_BOLT_13', 'REF_BOLT_14', 'REF_BOLT_15', 'REF_BOLT_16', 'REF_BOLT_17', 'REF_BOLT_18', 'REF_BOLT_19', 'REF_BOLT_20', 'REF_BOLT_21', 'REF_BOLT_22', 'REF_BOLT_23', 'REF_BOLT_24')),
+                          DOUBLE_LAGRANGE='OUI',
+                          INFO=1,
+                          LIAISON_SOLIDE=(_F(GROUP_NO=('BOLT_00', 'REF_BOLT_00')),
+                                          _F(GROUP_NO=('BOLT_01', 'REF_BOLT_01')),
+                                          _F(GROUP_NO=('BOLT_02', 'REF_BOLT_02')),
+                                          _F(GROUP_NO=('BOLT_03', 'REF_BOLT_03')),
+                                          _F(GROUP_NO=('BOLT_04', 'REF_BOLT_04')),
+                                          _F(GROUP_NO=('BOLT_05', 'REF_BOLT_05')),
+                                          _F(GROUP_NO=('BOLT_06', 'REF_BOLT_06')),
+                                          _F(GROUP_NO=('BOLT_07', 'REF_BOLT_07')),
+                                          _F(GROUP_NO=('BOLT_08', 'REF_BOLT_08')),
+                                          _F(GROUP_NO=('BOLT_09', 'REF_BOLT_09')),
+                                          _F(GROUP_NO=('BOLT_10', 'REF_BOLT_10')),
+                                          _F(GROUP_NO=('BOLT_11', 'REF_BOLT_11')),
+                                          _F(GROUP_NO=('BOLT_12', 'REF_BOLT_12')),
+                                          _F(GROUP_NO=('BOLT_13', 'REF_BOLT_13')),
+                                          _F(GROUP_NO=('BOLT_14', 'REF_BOLT_14')),
+                                          _F(GROUP_NO=('BOLT_15', 'REF_BOLT_15')),
+                                          _F(GROUP_NO=('BOLT_16', 'REF_BOLT_16')),
+                                          _F(GROUP_NO=('BOLT_17', 'REF_BOLT_17')),
+                                          _F(GROUP_NO=('BOLT_18', 'REF_BOLT_18')),
+                                          _F(GROUP_NO=('BOLT_19', 'REF_BOLT_19')),
+                                          _F(GROUP_NO=('BOLT_20', 'REF_BOLT_20')),
+                                          _F(GROUP_NO=('BOLT_21', 'REF_BOLT_21')),
+                                          _F(GROUP_NO=('BOLT_22', 'REF_BOLT_22')),
+                                          _F(GROUP_NO=('BOLT_23', 'REF_BOLT_23')),
+                                          _F(GROUP_NO=('BOLT_24', 'REF_BOLT_24'))),
+                          MODELE=model,
+                          SYNTAXE='NON',
+                          VERI_AFFE='OUI',
+                          VERI_NORM='OUI')
+
+# Résultat commande #0007 (AFFE_CHAR_MECA): supports ('<00000006>') de type <MechanicalLoadReal>
+# Mémoire (Mo) :  1550.17 /   820.04 /   325.53 /   246.51 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0007   user+syst:        0.22s (syst:        0.09s, elaps:        0.29s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt75
+# ----------------------------------------------------------------------------------------------
+# Commande #0008 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 75
+couplings = AFFE_CHAR_MECA(DOUBLE_LAGRANGE='OUI',
+                           INFO=1,
+                           LIAISON_RBE3=(_F(COEF_ESCL=1.0,
+                                            DDL_ESCL='DX-DY-DZ',
+                                            DDL_MAIT=('DX', 'DY', 'DZ', 'DRX', 'DRY', 'DRZ'),
+                                            GROUP_NO_ESCL='BORE_MAIN_S2',
+                                            GROUP_NO_MAIT='REF_BORE_MAIN_S2'),
+                                         _F(COEF_ESCL=1.0,
+                                            DDL_ESCL='DX-DY-DZ',
+                                            DDL_MAIT=('DX', 'DY', 'DZ', 'DRX', 'DRY', 'DRZ'),
+                                            GROUP_NO_ESCL='BORE_MAIN_S3',
+                                            GROUP_NO_MAIT='REF_BORE_MAIN_S3'),
+                                         _F(COEF_ESCL=1.0,
+                                            DDL_ESCL='DX-DY-DZ',
+                                            DDL_MAIT=('DX', 'DY', 'DZ', 'DRX', 'DRY', 'DRZ'),
+                                            GROUP_NO_ESCL='BORE_AX1_S1',
+                                            GROUP_NO_MAIT='REF_BORE_AX1_S1'),
+                                         _F(COEF_ESCL=1.0,
+                                            DDL_ESCL='DX-DY-DZ',
+                                            DDL_MAIT=('DX', 'DY', 'DZ', 'DRX', 'DRY', 'DRZ'),
+                                            GROUP_NO_ESCL='BORE_AX1_S4',
+                                            GROUP_NO_MAIT='REF_BORE_AX1_S4'),
+                                         _F(COEF_ESCL=1.0,
+                                            DDL_ESCL='DX-DY-DZ',
+                                            DDL_MAIT=('DX', 'DY', 'DZ', 'DRX', 'DRY', 'DRZ'),
+                                            GROUP_NO_ESCL='BORE_AX2_S2',
+                                            GROUP_NO_MAIT='REF_BORE_AX2_S2'),
+                                         _F(COEF_ESCL=1.0,
+                                            DDL_ESCL='DX-DY-DZ',
+                                            DDL_MAIT=('DX', 'DY', 'DZ', 'DRX', 'DRY', 'DRZ'),
+                                            GROUP_NO_ESCL='BORE_AX2_S3',
+                                            GROUP_NO_MAIT='REF_BORE_AX2_S3')),
+                           MODELE=model,
+                           SYNTAXE='NON',
+                           VERI_AFFE='OUI',
+                           VERI_NORM='OUI')
+
+# Résultat commande #0008 (AFFE_CHAR_MECA): couplings ('<00000007>') de type <MechanicalLoadReal>
+# Mémoire (Mo) :  1836.88 /   920.10 /   433.44 /   328.04 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0008   user+syst:       15.52s (syst:        0.78s, elaps:       16.32s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt87
+# ----------------------------------------------------------------------------------------------
+# Commande #0009 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 87
+loads = AFFE_CHAR_MECA(DOUBLE_LAGRANGE='OUI',
+                       FORCE_NODALE=(_F(FX=57185.8,
+                                        FY=-330205.7,
+                                        FZ=71500.0,
+                                        GROUP_NO='REF_BORE_MAIN_S2'),
+                                     _F(FX=68936.2,
+                                        FY=-148449.3,
+                                        FZ=137023.1,
+                                        GROUP_NO='REF_BORE_MAIN_S3'),
+                                     _F(FX=5650.2,
+                                        FY=55753.4,
+                                        FZ=-0.0,
+                                        GROUP_NO='REF_BORE_AX1_S1'),
+                                     _F(FX=9800.8,
+                                        FY=35145.3,
+                                        FZ=-21524.2,
+                                        GROUP_NO='REF_BORE_AX1_S4'),
+                                     _F(FX=-57911.6,
+                                        FY=5846.0,
+                                        FZ=-0.0,
+                                        GROUP_NO='REF_BORE_AX2_S2'),
+                                     _F(FX=-83661.3,
+                                        FY=75243.6,
+                                        FZ=-28263.9,
+                                        GROUP_NO='REF_BORE_AX2_S3')),
+                       INFO=1,
+                       MODELE=model,
+                       SYNTAXE='NON',
+                       VERI_AFFE='OUI',
+                       VERI_NORM='OUI')
+
+# Résultat commande #0009 (AFFE_CHAR_MECA): loads ('<00000008>') de type <MechanicalLoadReal>
+# Mémoire (Mo) :  1836.88 /   951.77 /   462.37 /   328.04 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0009   user+syst:        0.04s (syst:        0.04s, elaps:        0.07s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt99
+# ----------------------------------------------------------------------------------------------
+# Commande #0010 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 99
+result = MECA_STATIQUE(CARA_ELEM=points,
+                       CHAM_MATER=materials,
+                       EXCIT=(_F(CHARGE=supports,
+                                 TYPE_CHARGE='FIXE_CSTE'),
+                              _F(CHARGE=couplings,
+                                 TYPE_CHARGE='FIXE_CSTE'),
+                              _F(CHARGE=loads,
+                                 TYPE_CHARGE='FIXE_CSTE')),
+                       INFO=1,
+                       INST=0.0,
+                       MODELE=model,
+                       OPTION='SIEF_ELGA',
+                       SOLVEUR=_F(ACCELERATION='LR',
+                                  ELIM_LAGR='LAGR2',
+                                  GESTION_MEMOIRE='AUTO',
+                                  LOW_RANK_SEUIL=0.0,
+                                  MATR_DISTRIBUEE='NON',
+                                  METHODE='MUMPS',
+                                  NB_RHS=1,
+                                  NPREC=8,
+                                  PCENT_PIVOT=35,
+                                  POSTTRAITEMENTS='AUTO',
+                                  PRETRAITEMENTS='AUTO',
+                                  REDUCTION_MPI=0,
+                                  RENUM='AUTO',
+                                  RESI_RELA=1e-06,
+                                  STOP_SINGULIER='OUI',
+                                  TYPE_RESOL='AUTO'))
+
+Le système linéaire à résoudre a 1159311 degrés de liberté:
+   - 1131903 sont des degrés de liberté physiques
+     (ils sont portés par 377270 noeuds du maillage)
+   - 27408 sont les couples de paramètres de Lagrange associés
+     aux 13704 relations linéaires dualisées.
+La matrice est de taille 1159311 équations.
+  Elle contient 42496650 termes non nuls si elle est symétrique et 83833989 termes non nuls si elle
+n'est pas symétrique.
+  Soit un taux de remplissage de   0.006 %.
+Champ stocké <DEPL> à l'instant  0.000000000000e+00 pour le numéro d'ordre 1
+Champ stocké <SIEF_ELGA> à l'instant  0.000000000000e+00 pour le numéro d'ordre 1
+# Résultat commande #0010 (MECA_STATIQUE): result ('<00000009>') de type <ElasticResult>
+# Mémoire (Mo) :  6355.00 /  2989.87 /  1809.48 /   906.57 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0010   user+syst:       91.04s (syst:       21.22s, elaps:      110.61s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt183
+# ----------------------------------------------------------------------------------------------
+# Commande #0011 de /home/saxenam/.local/share/mamba/envs/aster/lib/python3
+12/site-packages/code_aster/Supervis/ExecuteCommand.py, ligne 183
+CALC_CHAMP(CONTRAINTE='SIGM_NOEU',
+           CRITERE='RELATIF',
+           CRITERES='SIEQ_NOEU',
+           FORCE='REAC_NODA',
+           INFO=1,
+           PARALLELISME_TEMPS='NON',
+           PRECISION=1e-06,
+           RESULTAT=result,
+           reuse=result)
+
+Le système linéaire à résoudre a 1159311 degrés de liberté:
+   - 1131903 sont des degrés de liberté physiques
+     (ils sont portés par 377270 noeuds du maillage)
+   - 27408 sont les couples de paramètres de Lagrange associés
+     aux 13704 relations linéaires dualisées.
+#2      Calculs elementaires et assemblages               CPU (USER+SYST/SYST/ELAPS):      2.37      0.26      2.37
+# Résultat commande #0011 (CALC_CHAMP): result ('<00000009>') de type <ElasticResult>
+# Mémoire (Mo) :  6355.00 /  2989.88 /  1830.18 /   906.57 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0011   user+syst:       14.97s (syst:        0.69s, elaps:       15.87s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt115
+# ----------------------------------------------------------------------------------------------
+# Commande #0012 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 115
+IMPR_RESU(FICHIER_UNIQUE='NON',
+          FORMAT='MED',
+          INFO=1,
+          PROC0='OUI',
+          RESU=_F(IMPR_NOM_VARI='OUI',
+                  INFO_MAILLAGE='NON',
+                  NOM_CHAM=('DEPL', 'SIGM_NOEU', 'SIEQ_NOEU', 'REAC_NODA'),
+                  NOM_CHAM_MED=('result__DEPL', 'result__SIGM_NOEU', 'result__SIEQ_NOEU', 'result__REAC_NODA'),
+                  RESULTAT=result),
+          UNITE=80,
+          VERSION_MED='3.3.1')
+
+Création du fichier au format MED 3.3.1.
+
+-> Votre modèle semble être composé de plusieurs modélisations, les composantes
+      de DEPL qui n'existent pas pour une partie du modèle ont été
+      mises à zéro.
+
+     Dans certains cas, le fichier MED produit peut devenir volumineux. Dans ce
+     cas, l'utilisation du mot-clé NOM_CMP est conseillée.
+
+-> Votre modèle semble être composé de plusieurs modélisations, les composantes
+      de REAC_NODA qui n'existent pas pour une partie du modèle ont été
+      mises à zéro.
+
+     Dans certains cas, le fichier MED produit peut devenir volumineux. Dans ce
+     cas, l'utilisation du mot-clé NOM_CMP est conseillée.
+
+# Mémoire (Mo) :  6355.00 /  2989.88 /  1830.18 /   906.57 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0012   user+syst:        2.08s (syst:        0.05s, elaps:        2.08s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt121
+# ----------------------------------------------------------------------------------------------
+# Commande #0013 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 121
+signals = POST_RELEVE_T(ACTION=(_F(CRITERE='RELATIF',
+                                   FORMAT_C='MODULE',
+                                   GROUP_NO='REF_BORE_MAIN_S2',
+                                   INTITULE='BORE_MAIN_S2',
+                                   MOYE_NOEUD='OUI',
+                                   NOM_CHAM='DEPL',
+                                   OPERATION='EXTRACTION',
+                                   PRECISION=1e-06,
+                                   REPERE='GLOBAL',
+                                   RESULTAT=result,
+                                   TOUT_CMP='OUI'),
+                                _F(CRITERE='RELATIF',
+                                   FORMAT_C='MODULE',
+                                   GROUP_NO='REF_BORE_MAIN_S3',
+                                   INTITULE='BORE_MAIN_S3',
+                                   MOYE_NOEUD='OUI',
+                                   NOM_CHAM='DEPL',
+                                   OPERATION='EXTRACTION',
+                                   PRECISION=1e-06,
+                                   REPERE='GLOBAL',
+                                   RESULTAT=result,
+                                   TOUT_CMP='OUI'),
+                                _F(CRITERE='RELATIF',
+                                   FORMAT_C='MODULE',
+                                   GROUP_NO='REF_BORE_AX1_S1',
+                                   INTITULE='BORE_AX1_S1',
+                                   MOYE_NOEUD='OUI',
+                                   NOM_CHAM='DEPL',
+                                   OPERATION='EXTRACTION',
+                                   PRECISION=1e-06,
+                                   REPERE='GLOBAL',
+                                   RESULTAT=result,
+                                   TOUT_CMP='OUI'),
+                                _F(CRITERE='RELATIF',
+                                   FORMAT_C='MODULE',
+                                   GROUP_NO='REF_BORE_AX1_S4',
+                                   INTITULE='BORE_AX1_S4',
+                                   MOYE_NOEUD='OUI',
+                                   NOM_CHAM='DEPL',
+                                   OPERATION='EXTRACTION',
+                                   PRECISION=1e-06,
+                                   REPERE='GLOBAL',
+                                   RESULTAT=result,
+                                   TOUT_CMP='OUI'),
+                                _F(CRITERE='RELATIF',
+                                   FORMAT_C='MODULE',
+                                   GROUP_NO='REF_BORE_AX2_S2',
+                                   INTITULE='BORE_AX2_S2',
+                                   MOYE_NOEUD='OUI',
+                                   NOM_CHAM='DEPL',
+                                   OPERATION='EXTRACTION',
+                                   PRECISION=1e-06,
+                                   REPERE='GLOBAL',
+                                   RESULTAT=result,
+                                   TOUT_CMP='OUI'),
+                                _F(CRITERE='RELATIF',
+                                   FORMAT_C='MODULE',
+                                   GROUP_NO='REF_BORE_AX2_S3',
+                                   INTITULE='BORE_AX2_S3',
+                                   MOYE_NOEUD='OUI',
+                                   NOM_CHAM='DEPL',
+                                   OPERATION='EXTRACTION',
+                                   PRECISION=1e-06,
+                                   REPERE='GLOBAL',
+                                   RESULTAT=result,
+                                   TOUT_CMP='OUI')),
+                        INFO=1)
+
+# Résultat commande #0013 (POST_RELEVE_T): signals ('<00000034>') de type <Table>
+# Mémoire (Mo) :  6355.00 /  2989.88 /  1830.18 /   906.57 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0013   user+syst:        4.38s (syst:        0.00s, elaps:        4.41s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt132
+# ----------------------------------------------------------------------------------------------
+# Commande #0014 de /tmp/run_aster_7biobdhl/baseline.comm.changed.py, ligne 132
+IMPR_TABLE(COMMENTAIRE='#',
+           COMM_PARA='',
+           DEBUT_LIGNE='',
+           FIN_LIGNE='\n',
+           FIN_TABLE='',
+           FORMAT='TABLEAU',
+           FORMAT_R='E12.5',
+           IMPR_FONCTION='NON',
+           INFO=1,
+           SEPARATEUR=' ',
+           TABLE=signals,
+           UNITE=81)
+
+# Mémoire (Mo) :  6355.00 /  2989.88 /  1830.18 /   906.57 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0014   user+syst:        0.06s (syst:        0.00s, elaps:        0.06s)
+# ----------------------------------------------------------------------------------------------
+
+.. _stg1_txt76
+# ----------------------------------------------------------------------------------------------
+# Commande #0015 de
+/home/saxenam/.local/share/mamba/envs/aster/lib/python3.12/site-packages/code_aster/CodeCommands/fin
+py, ligne 76
+FIN(INFO_RESU='NON',
+    RETASSAGE='NON')
+
+No database in results, objects not saved on processor #0
+
+ ╔════════════════════════════════════════════════════════════════════════════════════════════════╗
+ ║ <I> <CATAMESS_89>                                                                              ║
+ ║                                                                                                ║
+ ║ Liste des alarmes émises lors de l'exécution du calcul.                                        ║
+ ║                                                                                                ║
+ ║     Les alarmes que vous avez choisies d'ignorer sont précédées de (*).                        ║
+ ║     Nombre d'occurrences pour chacune des alarmes :                                            ║
+ ║            aucune alarme                                                                       ║
+ ╚════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+<I> <FIN> ARRET NORMAL DANS "FIN" PAR APPEL A "JEFINI".
+  
+ <I> <FIN> MEMOIRE JEVEUX MINIMALE REQUISE POUR L'EXECUTION :                     906.57 Mo
+ <I> <FIN> MEMOIRE JEVEUX OPTIMALE REQUISE POUR L'EXECUTION :                    1830.18 Mo
+ <I> <FIN> MAXIMUM DE MEMOIRE UTILISEE PAR LE PROCESSUS LORS DE L'EXECUTION :    6355.00 Mo
+  
+ <I>       FERMETURE DES BASES EFFECTUEE
+  
+   STATISTIQUES CONCERNANT L'ALLOCATION DYNAMIQUE :
+     TAILLE CUMULEE MAXIMUM            :                 1830  Mo.
+     TAILLE CUMULEE LIBEREE            :                 3216  Mo.
+     NOMBRE TOTAL D'ALLOCATIONS        :             24428741
+     NOMBRE TOTAL DE LIBERATIONS       :             24427999
+     APPELS AU MECANISME DE LIBERATION :                    0
+     TAILLE MEMOIRE CUMULEE RECUPEREE  :                  527  Mo.
+     VOLUME DES LECTURES               :                    0  Mo.
+     VOLUME DES ECRITURES              :                  534  Mo.
+  
+   MEMOIRE JEVEUX MINIMALE REQUISE POUR L'EXECUTION :     906.57 Mo
+     - IMPOSE DE NOMBREUX ACCES DISQUE
+     - RALENTIT LA VITESSE D'EXECUTION
+   MEMOIRE JEVEUX OPTIMALE REQUISE POUR L'EXECUTION :    1830.18 Mo
+     - LIMITE LES ACCES DISQUE
+     - AMELIORE LA VITESSE D'EXECUTION
+   MAXIMUM DE MEMOIRE UTILISEE PAR LE PROCESSUS     :    6355.00 Mo
+     - COMPREND LA MEMOIRE CONSOMMEE PAR  JEVEUX, 
+       LE SUPERVISEUR PYTHON, LES LIBRAIRIES EXTERNES
+  
+ <I>       FIN D'EXECUTION LE : LU-14-SEPT-2026 19:32:26
+INFO './glob.1' deleted
+Deleting './glob.2': No such file or directory
+INFO './vola.1' deleted
+Deleting './vola.2': No such file or directory
+
+ ********************************************************************************
+ * COMMAND                  :       USER :     SYSTEM :   USER+SYS :    ELAPSED *
+ ********************************************************************************
+ * DEBUT                    :       0.02 :       0.15 :       0.17 :       0.17 *
+ * LIRE_MAILLAGE            :       1.72 :       0.41 :       2.13 :       2.00 *
+ * AFFE_MODELE              :       0.82 :       0.02 :       0.84 :       0.78 *
+ * AFFE_CARA_ELEM           :       0.13 :       0.01 :       0.14 :       0.13 *
+ * DEFI_MATERIAU            :       0.03 :       0.00 :       0.03 :       0.03 *
+ * AFFE_MATERIAU            :       0.02 :       0.00 :       0.02 :       0.02 *
+ * AFFE_CHAR_MECA           :       0.22 :       0.09 :       0.31 :       0.29 *
+ * AFFE_CHAR_MECA           :      15.52 :       0.78 :      16.30 :      16.32 *
+ * AFFE_CHAR_MECA           :       0.04 :       0.04 :       0.08 :       0.07 *
+ * MECA_STATIQUE            :      91.04 :      21.22 :     112.26 :     110.61 *
+ * CALC_CHAMP               :      14.97 :       0.69 :      15.66 :      15.87 *
+ * IMPR_RESU                :       2.08 :       0.05 :       2.13 :       2.08 *
+ * POST_RELEVE_T            :       4.38 :       0.00 :       4.38 :       4.41 *
+ * IMPR_TABLE               :       0.06 :       0.00 :       0.06 :       0.06 *
+ * FIN                      :       0.02 :       0.01 :       0.03 :       0.03 *
+ *  . sdveri                :       0.00 :       0.00 :       0.00 :       0.00 *
+ *  . check syntax          :       0.02 :       0.00 :       0.02 :       0.02 *
+ *  . fortran               :      38.18 :       1.84 :      40.02 :      40.10 *
+ *  . cleanup               :       0.39 :       0.00 :       0.39 :       0.39 *
+ ********************************************************************************
+ * TOTAL_JOB                :     131.13 :      23.50 :     154.63 :     152.93 *
+ ********************************************************************************
+
+# Mémoire (Mo) :  6355.00 /  2990.88 /  1830.18 /   906.57 (VmPeak / VmSize / Optimum / Minimum)
+# Fin commande #0015   user+syst:        0.02s (syst:        0.01s, elaps:        0.03s)
+# ----------------------------------------------------------------------------------------------
+
+EXECUTION_CODE_ASTER_EXIT_508=0
+
+
+
+------------------------------------------------------------
+--- DIAGNOSTIC JOB : OK
+------------------------------------------------------------
+

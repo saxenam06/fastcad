@@ -1,0 +1,10 @@
+P actions make_etude
+P version stable
+P ncpus 1
+P memory_limit 7000
+P time_limit 900
+F comm baseline.comm D 1
+F mmed baseline.med D 20
+F rmed baseline.rmed R 80
+F resu baseline_signals.resu R 81
+F mess baseline.mess R 6

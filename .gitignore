@@ -9,12 +9,12 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-# Large, rebuildable analysis binaries (kept on disk, not in git)
-data/analysis/**/field.npz
-data/analysis/**/sizes.npz
-data/analysis/**/surface.npz
-data/analysis/**/*.brep
-data/analysis/**/*.pickle
+# The reference library: a copy of public data, rebuilt by scripts/make_reference.py
+reference/*
+!reference/README.md
+
+# Analysis outputs and preserved study data: kept on disk, never in git, never source code
+data/
 
 # OS and editor
 .DS_Store
