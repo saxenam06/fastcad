@@ -1,7 +1,21 @@
 # What a run reads from this folder. The Input Console shows these choices and lets you change them.
 
-# The CAD a run edits. Decided 2026-09-16 by measurement: this export behaves the same as the
-# original in every operation test, has far fewer defects (self-intersecting pieces 24 -> 1,
-# slivers 23 -> 6, worst edge tolerance 0.43 -> 0.27 mm), and it removes the silent 24.6% volume
-# loss when cutting at the HSS plane. See docs/grc/rear-housing-254492.md.
-canvas = "target/cad/254492_prep_small_adv.step"
+# The CAD a run edits. Decided 2026-09-16: the rib-free housing, the same geometry agenticCAE
+# generated and solved 490 designs on. It is the production casting with its ribs removed, so it
+# is the canvas fastcad's job actually addresses — putting structure back — rather than a part
+# that is already stiff.
+#
+# It also meshes. The production export does not: gmsh cannot parametrise 5 of its faces, and its
+# tessellation has 36-43 edges shared by four triangles. The rib-free one has none of the latter,
+# which is the property every volume mesher needs. Measured, both have self-intersections at the
+# same ~0.08% rate, so that was never the difference.
+#
+# Baseline, measured 2026-09-16: 198,577 TET10 elements, 1,067,028 unknowns, peak displacement
+# 21.32 mm. That is large because the deleted ribs were the load path from the main bearing bore
+# to the outer wall — which is the point of the demo, not a defect. See docs/grc/meshing.md.
+canvas = "target/cad/housing_ribfree.brep"
+
+# The previous canvas, kept because it is the drawn part and the reference solves were run on it:
+# production, with ribs, 127.90 dm3. Our pipeline gives 0.3658 mm on it against agenticCAE's
+# recorded 0.3906 mm, which is what validates the pipeline itself.
+# canvas = "target/cad/254492_prep_small_adv.step"

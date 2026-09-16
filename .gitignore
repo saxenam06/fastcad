@@ -16,6 +16,15 @@ reference/*
 # Analysis outputs and preserved study data: kept on disk, never in git, never source code
 data/
 
+# Credentials. Onshape API keys and model tokens live here.
+.env
+
+# What the meshers leave in the working directory
+*_skipped.face
+*_skipped.node
+*__tracked_surface.stl
+tetgen-tmpfile*
+
 # OS and editor
 .DS_Store
 Thumbs.db
