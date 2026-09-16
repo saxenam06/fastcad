@@ -9,6 +9,13 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
+# Large, rebuildable analysis binaries (kept on disk, not in git)
+data/analysis/**/field.npz
+data/analysis/**/sizes.npz
+data/analysis/**/surface.npz
+data/analysis/**/*.brep
+data/analysis/**/*.pickle
+
 # OS and editor
 .DS_Store
 Thumbs.db

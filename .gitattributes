@@ -4,6 +4,7 @@
 *.brep -text
 *.igs -text
 *.iges -text
+*.npz binary
 *.med binary
 *.rmed binary
 *.pdf binary

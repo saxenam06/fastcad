@@ -11,11 +11,11 @@ Status: planning is complete. The plan of record is [fastcad-v1-plan.md](fastcad
 
 ## M0: foundations
 
-1. **Save the outputs that live in Temp** into the repo:
-   - fastcae's gate study of the production housing (`solve\gate3cad`, `gate3`, `gate3seed`, `gate3reg`);
-   - this session's `step-analysis\`, `deck-analysis\` and `cae-extract\`.
-
-   Paths are in [environment.md](environment.md).
+1. **Save the outputs that live in Temp** into the repo. **Done 2026-09-16:** 126 files, about 75 MB, now in [`data/analysis/`](../data/analysis/README.md).
+   - The full `gate3cad` case, which is the reference solve of the production housing.
+   - Summaries of the other gate cases; the 2.1 GB system matrix was left behind.
+   - This session's STEP analysis, deck analysis and drawing crops.
+   - Large rebuildable binaries (`field.npz`, `sizes.npz`, `surface.npz`) are kept on disk but not in git.
 2. **Scaffold the package.**
    - A Python 3.12/uv package with a test skeleton.
    - Port modules from fastcae and agenticCAE, with their tests ([prior-work](prior-work/fastcae-and-agenticcae.md)).
@@ -31,21 +31,26 @@ Status: planning is complete. The plan of record is [fastcad-v1-plan.md](fastcad
    6. **The user signs off two things** ([grc/baseline-deck.md](grc/baseline-deck.md)):
       - which bearing sits in which seat (two are disputed between sources);
       - **the carrier-share fraction.** `loads.json` assumes the rear housing takes 50% of the carrier torque reaction: 460 kN·m over an assumed 750 mm arm, giving 306.7 kN, plus 71.5 kN of thrust, all at the Ø541 seat. Its stated plausible range is 460–920 kN·m. This one number is most of the 345 kN net load: without it, that seat would carry about a fourteenth as much. Keeping 50% is a valid answer.
-5. **Kernel bake-off, run on the current STEP as it is** (moved ahead of any repair, 2026-09-16). About 30 operations in three lanes:
+5. **The Input Console: the UI that shows what actually goes into a run** (added by the user, 2026-09-16).
+   - `assets/` is the only folder the user fills. The UI lists everything in it and marks the files the product needs as selected, so the user controls exactly what enters a run.
+   - The user imports the selected artifacts, and then sees: **the drawings, the CAD, the mesh, and the solver setup** that the coming variant work will use.
+   - A button solves the baseline with Code_Aster: run once, cached afterwards.
+   - Ported from fastcae's Input and Reproduce tabs where that is cheaper than writing fresh.
+6. **Kernel bake-off, run on the current STEP as it is** (moved ahead of any repair, 2026-09-16). About 30 operations in three lanes:
    - OpenCascade, with SimpleCADAPI and a FreeCAD repair pass first;
    - an Onshape FeatureScript interpreter;
    - CGM, if Spatial grants an evaluation.
 
    Parasolid and CGM heal imported geometry as they read it, so the winner decides how much repair we actually need ([research/platforms-and-kernels.md](research/platforms-and-kernels.md)).
-6. **Repair, scoped to what the winning kernel still fails on**, plus the silent-failure check (validity, expected volume change, nothing changed outside the edited region via geometric signature matching, mesh consistency).
+7. **Repair, scoped to what the winning kernel still fails on**, plus the silent-failure check (validity, expected volume change, nothing changed outside the edited region via geometric signature matching, mesh consistency).
    - The user's closed solid stays the canvas. Its known defects: 469 edges with tolerance above 0.1 mm, 26 slivers, 3 negative-area faces, 24 self-intersecting pieces, and the 10° cone (face 1904) that makes whole-body cuts silently lose volume.
    - **Optional, 5 minutes:** one tighter Onshape re-export, to see whether the loose tolerances disappear without any repair. If it doesn't help, we repair the current file.
-7. **First onboarding pass.**
+8. **First onboarding pass.**
    - The interface map as typed frames.
    - The design-style statistics.
    - A report of CAD-to-drawing mismatches: 4 known so far, each shown to the user to decide.
    - **The user signs off.**
-8. **Measure the time per variant** for an operation, the mesh and the solve, and set the M1 throughput targets.
+9. **Measure the time per variant** for an operation, the mesh and the solve, and set the M1 throughput targets.
 
 ## M1 → M5
 

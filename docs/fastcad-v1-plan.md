@@ -382,10 +382,17 @@ M0 covers, in this order (revised 2026-09-16):
 1. Preserving the gate study and this session's analysis outputs.
 2. Creating the repo and building `assets/`.
 3. **The production deck**, meshed with fTetWild, using **the load vectors already in fastcae's `loads.json`**. Nothing is re-derived. It is solved and compared with the gate study. The user signs off two things: which bearing sits in which seat, and the carrier-share fraction.
-4. **The kernel bake-off, run on the current STEP as it is.** Parasolid and CGM heal imported geometry when they read it, so how much repair we need depends on which kernel wins.
-5. **Repair, scoped to what the winning kernel still fails on**, plus the silent-failure check. Optional and cheap: one tighter Onshape re-export, to see whether it removes the loose tolerances (469 edges above 0.1 mm) without any repair work. The user's closed solid stays the canvas either way.
-6. Extracting the interfaces and design language, with drawing cross-checks and the user's decisions on mismatches.
-7. Measuring meshing and solving time per variant.
+4. **The Input Console** (added by the user, 2026-09-16). A UI that makes visible exactly what goes into a run:
+   - `assets/` is the only folder the user fills, and the UI lists every file in it, marking the ones the product needs as selected;
+   - after import, the user sees the drawings, the CAD, the mesh and the solver setup that the variant work will use;
+   - one button solves the baseline in Code_Aster, cached afterwards;
+   - ported from fastcae's Input and Reproduce tabs where that is cheaper than writing fresh.
+5. **The kernel bake-off, run on the current STEP as it is.** Parasolid and CGM heal imported geometry when they read it, so how much repair we need depends on which kernel wins.
+6. **Repair, scoped to what the winning kernel still fails on**, plus the silent-failure check.
+   - The tighter Onshape re-export was done on 2026-09-16. `prep_small_adv` cut self-intersecting pieces from 24 to 1 and slivers from 23 to 6, and lowered the worst edge tolerance from 0.43 to 0.27 mm, at the cost of 425 more faces. `prep_auto` changed nothing at all.
+   - Whether `prep_small_adv` becomes the canvas is decided by the operation tests (the blend-crossing fillet, and the whole-body cut), not by the defect counts.
+7. Extracting the interfaces and design language, with drawing cross-checks and the user's decisions on mismatches.
+8. Measuring meshing and solving time per variant.
 
 ## 13. Your action items
 
