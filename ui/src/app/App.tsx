@@ -1,10 +1,11 @@
 /**
- * The Input Console: what this run reads, and what it made of it.
+ * The shell: what a run reads, and the mesh it built from it.
  *
- * The left column is `assets/` as it is on disk, with the files a run actually opens marked. The
- * right is the mesh built from them, coloured by the regions the deck drives — so a bearing seat
- * being the right patch of the right bore is something you look at, not something you take on
- * trust.
+ * The same shape as fastcae's — the bar, the rail, the stage — because it is the same engineer
+ * looking at the same housing, and a second layout for the same job would only be a second thing
+ * to learn. The rail is `assets/` as it is on disk with the files a run opens marked, then the
+ * mesh, then the regions the deck drives. The stage is the mesh itself, coloured by those regions,
+ * so a bearing seat being the right patch of the right bore is something you look at.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -12,6 +13,8 @@ import type { AssetIndex, DeckInfo } from "../api/fastcad";
 import { api } from "../api/fastcad";
 import type { Skin } from "../render/fe";
 import { CameraLink, FeStage } from "../stage/FeStage";
+import { ART, PRODUCT, VENDOR, VIEWS } from "./product";
+import type { View } from "./product";
 
 /** One colour per region, so a seat is told apart from its neighbour at a glance. */
 const REGION_COLOURS: [number, number, number][] = [
@@ -30,12 +33,13 @@ function bytes(n: number): string {
   return `${n} B`;
 }
 
-export default function App() {
+export function App() {
   const [assets, setAssets] = useState<AssetIndex | null>(null);
   const [deck, setDeck] = useState<DeckInfo | null>(null);
   const [skin, setSkin] = useState<Skin | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  const [view, setView] = useState<View>("input");
   const link = useMemo(() => new CameraLink(), []);
 
   useEffect(() => {
@@ -48,87 +52,140 @@ export default function App() {
     () => (deck ? deck.groups.map((_, i) => REGION_COLOURS[i % REGION_COLOURS.length]) : undefined),
     [deck],
   );
+  const canvas = assets?.canvas?.split("/").pop() ?? "no canvas";
 
   return (
-    <div className="console">
-      <aside>
-        <h1>fastcad</h1>
-        <p className="lede">
-          What this run reads, and the mesh it built. Nothing here is typed in: the regions come
-          from the solver deck, the sizes from the CAD.
-        </p>
+    <div className="shell" data-open={true} style={{ gridTemplateColumns: "340px minmax(0, 1fr) 0px" }}>
+      <header className="topbar">
+        <img className="mark" src={ART.mark} alt="" aria-hidden="true" />
+        <span className="lockup">
+          <b>{VENDOR.name}</b>
+          <em>{VENDOR.tagline}</em>
+        </span>
+        <span className="divider" />
+        <span className="lockup">
+          <b>{PRODUCT.name}</b>
+        </span>
+        <span className="divider" />
+        <span className="lockup">
+          <b>{canvas}</b>
+          <em>{assets ? `${assets.selected} of ${assets.total} files read` : "reading…"}</em>
+        </span>
+        <nav className="stages main-tabs">
+          {VIEWS.map((entry) => (
+            <button
+              key={entry.id}
+              data-active={view === entry.id}
+              data-ready={entry.ready}
+              onClick={() => entry.ready && setView(entry.id)}
+              title={entry.summary}
+            >
+              {entry.label}
+            </button>
+          ))}
+        </nav>
+        <span className="spacer" />
+      </header>
 
-        <h2>
-          Inputs {assets ? <span className="count">{assets.selected} of {assets.total} read</span> : null}
-        </h2>
-        {assets ? (
-          <ul className="files">
-            {assets.files.map((f) => (
-              <li key={f.path} className={f.in_run ? "on" : "off"}>
-                <span className="tick">{f.in_run ? "✓" : ""}</span>
-                <span className="path">{f.path}</span>
-                <span className="kind">{f.kind}</span>
-                <span className="size">{bytes(f.bytes)}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="waiting">{failed ?? "reading assets…"}</p>
-        )}
-
-        {deck ? (
-          <>
-            <h2>Mesh</h2>
-            <dl className="facts">
-              <dt>elements</dt><dd>{deck.mesh.elements.toLocaleString()} TET{deck.mesh.order === 2 ? "10" : "4"}</dd>
-              <dt>nodes</dt><dd>{deck.mesh.nodes.toLocaleString()}</dd>
-              <dt>unknowns</dt><dd>{deck.mesh.unknowns.toLocaleString()}</dd>
-              <dt>boundary</dt><dd>{deck.mesh.boundary_triangles.toLocaleString()} triangles</dd>
-            </dl>
-
-            <h2>Regions the deck drives</h2>
-            <table className="regions">
-              <tbody>
-                {deck.groups.map((g, i) => (
-                  <tr
-                    key={g.name}
-                    className={hovered === i ? "lit" : undefined}
-                    onMouseEnter={() => setHovered(i)}
-                    onMouseLeave={() => setHovered(null)}
-                  >
-                    <td>
-                      <span
-                        className="swatch"
-                        style={{ background: `rgb(${REGION_COLOURS[i % REGION_COLOURS.length].join(",")})` }}
-                      />
-                    </td>
-                    <td className="name">{g.name}</td>
-                    <td className="dia">{g.diameter_mm?.length ? `Ø${g.diameter_mm[0]}` : ""}</td>
-                    <td className="tris">{g.triangles.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <p className="note">
-              {deck.bolts} bolt holes, tied together as one group. Diameters are the CAD's own,
-              matched to the deck's node groups by axis and radius.
+      <div className="rail">
+        <div className="rail-scroll">
+          <section className="block">
+            <h2>Inputs</h2>
+            <p className="hint">
+              Everything in <code>assets/</code>. Ticked is what a run opens — nothing else is read.
             </p>
-          </>
-        ) : null}
-      </aside>
+            {assets ? (
+              <ul className="files">
+                {assets.files.map((f) => (
+                  <li key={f.path} className={f.in_run ? "on" : "off"}>
+                    <span className="tick">{f.in_run ? "✓" : "·"}</span>
+                    <span className="path">{f.path}</span>
+                    <span className="size">{bytes(f.bytes)}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="hint">{failed ?? "reading assets…"}</p>
+            )}
+          </section>
 
-      <main>
-        <FeStage
-          skin={skin}
-          mode="patches"
-          groupColours={colours as ([number, number, number] | null)[] | undefined}
-          edges={false}
-          link={link}
-          frameKey="baseline"
-          hoveredGroup={hovered}
-          caption={skin ? null : <span>building the mesh view…</span>}
-        />
-      </main>
+          {deck ? (
+            <>
+              <section className="block">
+                <h2>Mesh</h2>
+                <dl className="facts">
+                  <dt>elements</dt>
+                  <dd>
+                    {deck.mesh.elements.toLocaleString()} TET{deck.mesh.order === 2 ? "10" : "4"}
+                  </dd>
+                  <dt>nodes</dt>
+                  <dd>{deck.mesh.nodes.toLocaleString()}</dd>
+                  <dt>unknowns</dt>
+                  <dd>{deck.mesh.unknowns.toLocaleString()}</dd>
+                  <dt>boundary</dt>
+                  <dd>{deck.mesh.boundary_triangles.toLocaleString()} triangles</dd>
+                </dl>
+              </section>
+
+              <section className="block">
+                <h2>Regions the deck drives</h2>
+                <p className="hint">
+                  Found by fitting each of the deck's node groups for an axis and radius, then
+                  matching the CAD face that turns about the same line. The diameters are the CAD's.
+                </p>
+                <table className="regions">
+                  <tbody>
+                    {deck.groups.map((g, i) => (
+                      <tr
+                        key={g.name}
+                        className={hovered === i ? "lit" : undefined}
+                        onMouseEnter={() => setHovered(i)}
+                        onMouseLeave={() => setHovered(null)}
+                      >
+                        <td>
+                          <span
+                            className="swatch"
+                            style={{
+                              background: `rgb(${REGION_COLOURS[i % REGION_COLOURS.length].join(",")})`,
+                            }}
+                          />
+                        </td>
+                        <td className="name">{g.name}</td>
+                        <td className="dia">{g.diameter_mm?.length ? `Ø${g.diameter_mm[0]}` : ""}</td>
+                        <td className="tris">{g.triangles.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="hint">{deck.bolts} bolt holes, tied as one group.</p>
+              </section>
+            </>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="stage">
+        <div className="stage-body">
+          <FeStage
+            skin={skin}
+            mode="patches"
+            groupColours={colours as ([number, number, number] | null)[] | undefined}
+            edges={false}
+            link={link}
+            frameKey="baseline"
+            hoveredGroup={hovered}
+            caption={skin ? null : <span>loading the mesh…</span>}
+          />
+        </div>
+      </div>
+
+      <footer className="titlebar">
+        <span>{canvas}</span>
+        <span className="spacer" />
+        <span>{deck ? `${deck.mesh.elements.toLocaleString()} elements · ${deck.mesh.unknowns.toLocaleString()} unknowns` : ""}</span>
+      </footer>
     </div>
   );
 }
+
+export default App;
