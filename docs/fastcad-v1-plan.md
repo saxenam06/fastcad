@@ -245,7 +245,7 @@ fastcad solves every variant (Q28):
 ## 8. The agent
 
 - **Runtime:** LangGraph, whose tools are served by an **engineering MCP server**. If LangGraph can't do the job, switch to the Claude Agent SDK (Q17).
-- **Default models:** Claude Opus 5 for extraction and planning, Claude Sonnet 5 for routine steps. Switchable in config.
+- **Default models:** **start with DeepSeek v4-pro through OpenRouter**, as agenticCAE does, and move to Claude later (the user's decision, 2026-09-16). The provider stays swappable in config, so the switch costs nothing.
 - **Tools** (all deterministic, all written and tested during development):
   - inspect, extract interfaces, read drawing callouts, cross-check CAD against drawing, measure design language;
   - understand deck, prepare canvas;
@@ -378,19 +378,18 @@ The fresh repository lives at `C:\Work\fastcad` (git, Python 3.12, uv). Modules 
 | **M4: generality** | 254506: onboarding, its style, variants including bore-to-mount paths, and a deck by analogy with loads asked from the engineer. | At least 50 front-housing variants pass the checks. |
 | **M5: demo** | Blind panel, rehearsed script, investor cut, performance tuning, the dataset contract to fastCAE. | The full success bar. |
 
-M0 covers:
-- preserving the gate study and this session's analysis outputs;
-- creating the repo;
-- building `assets/`;
-- the canvas re-export, repair and silent-failure oracle;
-- extracting interfaces and design language, with drawing cross-checks and your decisions on mismatches;
-- the fTetWild production deck, solved and compared with the gate study, then signed off;
-- the kernel bake-off;
-- measuring meshing and solving times per variant.
+M0 covers, in this order (revised 2026-09-16):
+1. Preserving the gate study and this session's analysis outputs.
+2. Creating the repo and building `assets/`.
+3. **The production deck**, meshed with fTetWild, using **the load vectors already in fastcae's `loads.json`**. Nothing is re-derived. It is solved and compared with the gate study. The user signs off two things: which bearing sits in which seat, and the carrier-share fraction.
+4. **The kernel bake-off, run on the current STEP as it is.** Parasolid and CGM heal imported geometry when they read it, so how much repair we need depends on which kernel wins.
+5. **Repair, scoped to what the winning kernel still fails on**, plus the silent-failure check. Optional and cheap: one tighter Onshape re-export, to see whether it removes the loose tolerances (469 edges above 0.1 mm) without any repair work. The user's closed solid stays the canvas either way.
+6. Extracting the interfaces and design language, with drawing cross-checks and the user's decisions on mismatches.
+7. Measuring meshing and solving time per variant.
 
 ## 13. Your action items
 
-1. **Onshape: re-export 254492** at a tighter tolerance (Q22).
+1. **Optional: re-export 254492** from Onshape at a tighter tolerance, as a cheap test of whether the loose edge tolerances disappear. The user's existing closed solid stays the canvas either way (revised 2026-09-16).
 2. **Onshape: convert and close 254506** (the front housing) to STEP.
 3. **Get the GB2 housing** `251342-1.SLDPRT` from your D: copy or by re-downloading it. Then convert and close it in Onshape.
 4. **Optional:** Onshape API keys, so Parasolid can join the bake-off and conversions can be scripted.
@@ -422,8 +421,10 @@ M0 covers:
   - offering fastcad operators as Synera nodes;
   - joining the Association Industrial AI expert group.
 
-**Defaults, taken as agreed unless you object:**
-- Claude as the default model.
+**Defaults, now confirmed by the user (2026-09-16):**
+- DeepSeek first as the default model, moving to Claude later.
+- Code_Aster as the solver.
+- Plan rev B accepted, to be adjusted as work progresses.
 - Code_Aster certifies a sample of decks rather than every deck.
 - Variants are meshed the same way as the baseline.
 - `C:\Work\fastcad` becomes a git repository.

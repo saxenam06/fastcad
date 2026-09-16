@@ -153,7 +153,13 @@ The product supports every mode, and these choices become fields in the Requirem
   - nTop's figure is anecdotal, so we publish our own yield funnel instead.
 - **"Consider this FEA-solver post."** Recorded. It supports copying the customer's own high-end solver deck rather than using CAD-embedded FEM. SimScale's structural analyses run on Code_Aster.
 - **The plan moved to rev B** (2026-09-16), with the research findings in section 16.
-- **Still pending:**
-  - the user's confirmation of the plan of record (rev B);
-  - the defaults listed in section 14 of the plan: Claude as the default model, Code_Aster run on a sample of decks, variants meshed the same way as the baseline, and the repo turned into git;
-  - the new action items: a Spatial CGM evaluation, and Onshape API access on a paid plan.
+- **Confirmed on 2026-09-16:**
+  - **Plan rev B is accepted**, "but we will improvise on the go based on the progress".
+  - **Models:** start with LangGraph plus DeepSeek, and move to Claude later.
+  - **Solver:** Code_Aster.
+  - **Three questions the user raised before M0, and the answers given:**
+    1. *Why re-export the housing?* You don't have to. Your closed solid stays the canvas. A tighter export is only a cheap test of whether the loose tolerances (469 edges above 0.1 mm, worst 0.43) disappear without repair work.
+    2. *What is the carrier-share assumption?* One number in fastcae's `loads.json`: the rear housing is assumed to take 50% of the carrier torque reaction, i.e. 460 kN·m over an assumed 750 mm arm (306.7 kN), plus 71.5 kN of thrust, at the Ø541 seat. The file gives a plausible range of 460–920 kN·m. It is most of the 345 kN net load; without it that seat carries about a fourteenth as much. Sign-off means keeping 50% or naming another share.
+    3. *The loads are already in fastcae's JSON, so why re-derive?* We don't. The deck uses those vectors as they are. Loads are only recomputed in M3, when a bearing actually moves, because gear forces depend on shaft positions.
+  - **M0 was reordered:** the kernel bake-off now runs on the current STEP **before** any repair, because Parasolid and CGM heal imported geometry on import, so the winning kernel decides how much repair is needed.
+- **Still open:** the action items, namely a Spatial CGM evaluation and Onshape API access on a paid plan.
