@@ -24,25 +24,36 @@ interface Props {
 
 export function ExtractStage({ onExtracted }: Props) {
   const [folders, setFolders] = useState<FolderRow[]>([]);
-  const [active, setActive] = useState<string | null>(null);
+  const [path, setPath] = useState("assets/target");
+  const [probe, setProbe] = useState<{ exists: boolean; files: number; bytes: number } | null>(null);
   const [folder, setFolder] = useState<Folder | null>(null);
   const [ticked, setTicked] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api
-      .folders()
-      .then((r) => {
-        setFolders(r.folders);
-        // One folder is the common case, so it is already chosen; more than one waits to be told.
-        if (r.folders.length === 1) setActive(r.folders[0].name);
-      })
-      .catch((e) => setError(String(e)));
+    api.folders().then((r) => setFolders(r.folders)).catch((e) => setError(String(e)));
   }, []);
 
-  const open = useCallback((name: string) => {
+  // The path says whether it resolves as it is typed, rather than failing after Upload.
+  useEffect(() => {
+    if (!path.trim()) {
+      setProbe(null);
+      return;
+    }
+    let live = true;
+    api
+      .check(path.trim())
+      .then((r) => live && setProbe(r))
+      .catch(() => live && setProbe({ exists: false, files: 0, bytes: 0 }));
+    return () => {
+      live = false;
+    };
+  }, [path]);
+
+  const open = useCallback((where: string) => {
     setError(null);
+    const name = where.replace(/^assets\//, "").replace(/\/$/, "");
     api
       .folder(name)
       .then((f) => {
@@ -75,36 +86,56 @@ export function ExtractStage({ onExtracted }: Props) {
   return (
     <div className="upload">
       <div className="upload-inner">
-        {folders.length > 1 ? (
-          <div className="project-tabs">
-            {folders.map((f) => (
-              <button key={f.name} data-active={f.name === active} onClick={() => { setActive(f.name); setFolder(null); }}>
-                {f.path}
-              </button>
-            ))}
-          </div>
-        ) : null}
-
         {!folder ? (
           <div className="panel">
             <div className="panel-head">
-              <h1>{active ? `assets/${active}` : "Choose a folder"}</h1>
+              <h1>Choose a folder</h1>
               <span className="mono dim">
-                {active
-                  ? `${folders.find((f) => f.name === active)?.files ?? 0} files`
-                  : "under assets/"}
+                {probe === null ? "" : probe.exists ? `${probe.files} files` : "not found"}
               </span>
             </div>
             <p className="hint">
-              The folder is the input. Opening it lists what is there so the files a run reads can
-              be ticked — nothing is copied, and nothing outside it is ever read.
+              The folder is the input — edit the path to point anywhere under the project. Opening
+              it lists what is there so the files a run reads can be ticked; nothing is copied, and
+              nothing outside it is ever read.
             </p>
+
+            <div className="fields">
+              <div className="field" data-bad={probe !== null && !probe.exists}>
+                <label>folder</label>
+                <input
+                  className="mono"
+                  value={path}
+                  spellCheck={false}
+                  placeholder="assets/target"
+                  onChange={(event) => setPath(event.target.value)}
+                />
+                <span className="mono dim size">
+                  {probe === null ? "" : probe.exists ? size(probe.bytes) : "not found"}
+                </span>
+              </div>
+            </div>
+
+            {folders.length > 0 ? (
+              <p className="hint">
+                {folders.map((f) => (
+                  <button key={f.name} className="ghost" onClick={() => setPath(f.path)}>
+                    {f.path}
+                  </button>
+                ))}
+              </p>
+            ) : null}
+
             {error ? <div className="error-inline">{error}</div> : null}
             <div className="panel-foot">
-              <button className="primary" disabled={!active} onClick={() => active && open(active)}>
+              <button
+                className="primary"
+                disabled={!probe?.exists || probe.files === 0}
+                onClick={() => open(path)}
+              >
                 Upload
               </button>
-              {!active ? <span className="dim">pick a folder</span> : null}
+              {probe !== null && !probe.exists ? <span className="dim">no such folder</span> : null}
             </div>
           </div>
         ) : (

@@ -31,6 +31,7 @@ is Code_Aster's limit for a group name.
 
 from __future__ import annotations
 
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -96,16 +97,27 @@ def rewrite_med(path: Path) -> int:
     return changed
 
 
-def rewrite_text(path: Path) -> int:
-    """Rename every group named in a command or export file."""
-    text = path.read_text(encoding="utf-8")
+def rewrite_text(path: Path, quoted: bool = True) -> int:
+    """Rename every group named in a text file of the deck.
+
+    A command file quotes its group names, so only quoted ones are touched there. A results table
+    prints them bare in a column, so those are matched on word boundaries instead — the same deck,
+    so the same names, and a results file still speaking in codes would be the one place the old
+    vocabulary survived.
+    """
+    text = path.read_text(encoding="utf-8", errors="ignore")
     changed = 0
     # Longest first, so REF_BORE_MAIN_S2 is replaced before BORE_MAIN_S2 is found inside it.
     for old in sorted(NAMES, key=len, reverse=True):
-        token = f"'{old}'"
-        if token in text:
-            changed += text.count(token)
-            text = text.replace(token, f"'{NAMES[old]}'")
+        if quoted:
+            token = f"'{old}'"
+            if token in text:
+                changed += text.count(token)
+                text = text.replace(token, f"'{NAMES[old]}'")
+        else:
+            pattern = re.compile(rf"\b{re.escape(old)}\b")
+            text, count = pattern.subn(NAMES[old], text)
+            changed += count
     path.write_text(text, encoding="utf-8")
     return changed
 
@@ -122,15 +134,26 @@ def main(apply: bool) -> int:
         print("\nnothing written. Pass --apply to rewrite the deck.")
         return 0
 
-    for name in ("baseline.med", "baseline.comm", "baseline.export"):
+    # Kept outside assets/, because assets/ is meant to show exactly what a run reads and a
+    # superseded copy of the deck sitting in it is the opposite of that.
+    kept = ROOT / "data" / "analysis" / "deck_before_rename"
+    kept.mkdir(parents=True, exist_ok=True)
+
+    for name, quoted in (
+        ("baseline.med", None),
+        ("baseline.comm", True),
+        ("baseline.export", True),
+        ("baseline_signals.resu", False),
+        ("baseline.mess", False),
+    ):
         path = DECK / name
         if not path.exists():
             continue
-        backup = path.with_suffix(path.suffix + ".coded")
+        backup = kept / name
         if not backup.exists():
             shutil.copy2(path, backup)
-        changed = rewrite_med(path) if path.suffix == ".med" else rewrite_text(path)
-        print(f"{name}: {changed} renamed (was kept as {backup.name})")
+        changed = rewrite_med(path) if quoted is None else rewrite_text(path, quoted)
+        print(f"{name}: {changed} renamed (the original is in {kept.relative_to(ROOT)})")
     return 0
 
 

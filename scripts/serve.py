@@ -23,10 +23,10 @@ def main(port: int) -> int:
     import uvicorn
 
     built = ROOT / "ui" / "dist" / "index.html"
-    print(f"fastcad on http://127.0.0.1:{port}")
-    print(f"  api      /api/assets, /api/deck, /api/deck/mesh")
+    print(f"fastcad on http://localhost:{port}")
+    print("  api      /api/assets, /api/deck, /api/deck/mesh")
     print(f"  console  {'served here' if built.exists() else 'not built — npm --prefix ui run build'}")
-    uvicorn.run("fastcad.api:app", host="127.0.0.1", port=port, reload=False)
+    uvicorn.run("fastcad.api:app", host="0.0.0.0", port=port, reload=False)
     return 0
 
 

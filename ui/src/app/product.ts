@@ -63,6 +63,24 @@ export const VIEWS: { id: View; label: string; summary: string; ready: boolean }
   },
 ];
 
+/** Input's four: the engineer's own files, as read. */
+export type InputTab = "drawing" | "cad" | "mesh" | "results";
+
+export const INPUT_TABS: { id: InputTab; label: string; summary: string }[] = [
+  { id: "drawing", label: "Drawing", summary: "The drawing, as it was issued" },
+  { id: "cad", label: "CAD", summary: "The part as its CAD describes it: faces, surfaces, volume" },
+  {
+    id: "mesh",
+    label: "Mesh",
+    summary: "The mesh built from it, and the regions the deck drives on it",
+  },
+  {
+    id: "results",
+    label: "Results",
+    summary: "The answer the engineer's own solver gave — shown only if its files were chosen",
+  },
+];
+
 /**
  * The supplied lockup is stacked - crane over wordmark over tagline - and a stacked lockup cannot
  * work in a horizontal bar: at any height that fits, the tagline degrades to a grey smudge. So the

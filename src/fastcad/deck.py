@@ -266,6 +266,57 @@ def forces(comm: Path | str) -> dict[str, tuple[float, float, float]]:
     }
 
 
+def signals(resu: Path | str) -> list[dict]:
+    """The answer the deck's own solve gave, as it wrote it.
+
+    `POST_RELEVE_T` prints one row per reference node: where it is, how far it moved, and how far
+    it turned. This is the deck's result, not ours — read only to be compared against, never to
+    drive anything.
+    """
+    rows: list[dict] = []
+    for line in Path(resu).read_text(encoding="utf-8", errors="ignore").splitlines():
+        parts = line.split()
+        # A data row is a name, a node number, a result id, a field name, then only numbers.
+        if len(parts) < 15 or parts[3] != "DEPL":
+            continue
+        try:
+            values = [float(v) for v in parts[5:]]
+        except ValueError:
+            continue
+        if len(values) < 11:
+            continue
+        rows.append({
+            "name": parts[0],
+            "node": int(parts[1]),
+            "at": [round(v, 3) for v in values[2:5]],
+            "translation": [round(v, 6) for v in values[5:8]],
+            "rotation": [round(v, 9) for v in values[8:11]],
+        })
+    return rows
+
+
+_HELD = re.compile(
+    r"DDL_IMPO=\(?\s*_F\(GROUP_NO=\(([^)]*)\)((?:,\s*D[XYZ]=[-\d.eE+]+)+)", re.S
+)
+_DOF = re.compile(r"(D[XYZ])=([-\d.eE+]+)")
+
+
+def held(comm: Path | str) -> list[dict]:
+    """Which node groups are held, and in which directions.
+
+    What a support actually is, read from the deck rather than assumed: a group of nodes and the
+    degrees of freedom imposed on them. A deck that holds something in one direction only is a
+    different model from one that clamps it, and the drawing of it should differ too.
+    """
+    out = []
+    for groups, dofs in _HELD.findall(Path(comm).read_text(encoding="utf-8")):
+        out.append({
+            "groups": re.findall(r"'([A-Za-z0-9_]+)'", groups),
+            "dofs": {k: float(v) for k, v in _DOF.findall(dofs)},
+        })
+    return out
+
+
 def tied(comm: Path | str) -> dict[str, str]:
     """Regions held rigidly to a single node: the bolts, whatever they are called."""
     return dict(_TIED.findall(Path(comm).read_text(encoding="utf-8")))

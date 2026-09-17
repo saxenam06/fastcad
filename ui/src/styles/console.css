@@ -178,6 +178,183 @@
   white-space: nowrap;
 }
 
+/* A tab that is not the 3D view: the drawing, the CAD's own account of itself, the deck's answer. */
+.sheet {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.middle {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  margin: 0;
+  padding: 0 40px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.readout {
+  height: 100%;
+  overflow: auto;
+  padding: 18px 22px 40px;
+}
+
+.readout h2 {
+  margin: 18px 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.readout h2:first-child {
+  margin-top: 0;
+}
+
+.readout .facts {
+  max-width: 340px;
+}
+
+/* The strip over the mesh: what the setup holds, ties, couples and pushes — and a way to get it
+   out of the way when the mesh itself is what you want to look at. */
+.setup-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setup-bar button {
+  padding: 1px 8px;
+  border: 1px solid var(--hairline, #d9dde3);
+  border-radius: 10px;
+  background: var(--sheet, #fff);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.setup-bar button[data-on="true"] {
+  border-color: var(--blue, #2a76af);
+  color: var(--blue, #2a76af);
+}
+
+/* One entity in the model: what it is, its id, what it links to. The id is shown because a link
+   that cannot be named cannot be talked about — "face 890" is a thing an engineer can say. */
+.entity {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--hairline, #edeff2);
+}
+
+.entity[data-on="true"] {
+  background: var(--wash, #eef3f8);
+}
+
+.entity-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.entity-head b {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.entity-head .kind {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.entity .eid {
+  margin: 1px 0 4px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--faint, #9aa4b0);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.link {
+  padding: 2px 7px;
+  border: 1px solid var(--hairline, #d9dde3);
+  border-radius: 10px;
+  background: var(--sheet, #fff);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--blue, #2a76af);
+  cursor: pointer;
+}
+
+.link:hover {
+  border-color: var(--blue, #2a76af);
+  background: var(--wash, #eef3f8);
+}
+
+/* One extracted signal in the rail: what the solver wrote for one region. */
+.signal {
+  margin: 0 0 10px;
+  padding: 7px 9px;
+  border-left: 2px solid var(--hairline, #d9dde3);
+  background: var(--sheet, #fbfcfd);
+}
+
+.signal b {
+  display: block;
+  margin-bottom: 3px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.signal .facts {
+  font-size: 10.5px;
+}
+
+.signals {
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.signals th {
+  padding: 3px 10px 5px 0;
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.signals td {
+  padding: 3px 10px 3px 0;
+}
+
+.signals .name {
+  font-family: var(--mono);
+}
+
+.signals .num {
+  text-align: right;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
 /* The strip along the bottom: what is loaded, and how big it is. Same role as the drawing's title
    block — a number on screen without the thing it describes is a number you cannot place. */
 .titlebar {

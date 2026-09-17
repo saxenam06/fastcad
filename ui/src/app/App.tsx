@@ -1,102 +1,141 @@
 /**
- * The shell: what a run reads, and the mesh it built from it.
+ * The shell: one model, four views onto it.
  *
- * The same shape as fastcae's — the bar, the rail, the stage — because it is the same engineer
- * looking at the same housing, and a second layout for the same job would only be a second thing
- * to learn. The rail is `assets/` as it is on disk with the files a run opens marked, then the
- * mesh, then the regions the deck drives. The stage is the mesh itself, coloured by those regions,
- * so a bearing seat being the right patch of the right bore is something you look at.
+ * The rail is the model and does not change with the tab. A bearing seat is not a fact belonging
+ * to the Mesh tab — it is an entity the deck names, the CAD holds two faces of, the mesh covers
+ * with triangles and the solver wrote an answer for. Keeping those as links, and keeping the
+ * links in one place, is what lets any of them be reached from wherever you happen to be.
+ *
+ * Every link navigates. Clicking `face 890` goes to the CAD and lights face 890; clicking a mesh
+ * group goes to the Mesh and lights it. The centre is only ever the view, and says what entity is
+ * under the cursor.
+ *
+ * What is shown is what was chosen at Extract, and the server enforces that, not this file.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { AssetIndex, DeckInfo } from "../api/fastcad";
-import { api } from "../api/fastcad";
-import type { Skin } from "../render/fe";
+import type { AssetIndex, Entity, Link } from "../api/fastcad";
+import { api, Declined } from "../api/fastcad";
 import { ExtractStage } from "../stage/ExtractStage";
+import type { Hovered } from "../stage/FeStage";
 import { CameraLink, FeStage } from "../stage/FeStage";
-import { ART, PRODUCT, VENDOR, VIEWS } from "./product";
-import type { View } from "./product";
+import { ART, INPUT_TABS, PRODUCT, VENDOR, VIEWS } from "./product";
+import type { InputTab, View } from "./product";
 
-/** One colour per region, so a seat is told apart from its neighbour at a glance. */
 const REGION_COLOURS: [number, number, number][] = [
-  [42, 118, 175],
-  [214, 150, 40],
-  [120, 74, 160],
-  [47, 143, 69],
-  [200, 67, 58],
-  [34, 102, 204],
-  [90, 98, 108],
+  [42, 118, 175], [214, 150, 40], [120, 74, 160],
+  [47, 143, 69], [200, 67, 58], [34, 102, 204], [90, 98, 108],
 ];
+const PICKED: [number, number, number] = [15, 61, 145];
 
-function bytes(n: number): string {
-  if (n >= 1e6) return `${(n / 1e6).toFixed(1)} MB`;
-  if (n >= 1e3) return `${(n / 1e3).toFixed(0)} kB`;
-  return `${n} B`;
+function why(error: unknown, fallback: string): string {
+  if (error instanceof Declined) return error.message;
+  return error ? String(error) : fallback;
+}
+
+function useLoad<T>(load: () => Promise<T>, when: boolean, again = 0) {
+  const [state, setState] = useState<{ value: T | null; error: unknown }>({ value: null, error: null });
+  useEffect(() => {
+    if (!when) return;
+    let live = true;
+    load()
+      .then((v) => live && setState({ value: v, error: null }))
+      .catch((e) => live && setState({ value: null, error: e }));
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [when, again]);
+  return state;
 }
 
 export function App() {
-  const [assets, setAssets] = useState<AssetIndex | null>(null);
-  const [deck, setDeck] = useState<DeckInfo | null>(null);
-  const [skin, setSkin] = useState<Skin | null>(null);
-  const [failed, setFailed] = useState<string | null>(null);
-  const [hovered, setHovered] = useState<number | null>(null);
-  const [opened, setOpened] = useState<string | null>(null);
   const [view, setView] = useState<View>("extract");
+  const [tab, setTab] = useState<InputTab>("cad");
+  const [again, setAgain] = useState(0);
+  const [assets, setAssets] = useState<AssetIndex | null>(null);
+  const [chosen, setChosen] = useState<string | null>(null);
+  const [hover, setHover] = useState<Hovered | null>(null);
+  // The setup is drawn over the mesh by default: a mesh coloured by region says where the seats
+  // are, not that 330 kN goes into one of them along a particular vector.
+  const [setup, setSetup] = useState(true);
   const link = useMemo(() => new CameraLink(), []);
 
-  const load = useCallback(() => {
-    // Failures are shown, not swallowed. A stage that says "loading" forever because a fetch threw
-    // is worse than one that says what went wrong.
-    api.assets().then(setAssets).catch((e) => setFailed(String(e)));
-    api.deck().then(setDeck).catch((e) => setFailed(String(e)));
-    api.deckSkin().then(setSkin).catch((e) => setFailed(String(e)));
-  }, []);
+  const open = view !== "extract";
+  const reload = useCallback(() => setAgain((n) => n + 1), []);
 
   useEffect(() => {
-    // Straight to Input if something was extracted before; otherwise there is nothing to show yet.
     api
       .assets()
       .then((a) => {
         setAssets(a);
-        if (a.extracted) {
-          setView("input");
-          load();
-        }
+        if (a.extracted) setView("input");
       })
-      .catch((e) => setFailed(String(e)));
-  }, [load]);
+      .catch(() => undefined);
+  }, [again]);
 
-  const extracted = () => {
-    setView("input");
-    load();
-  };
+  const model = useLoad(() => api.model(), open, again);
+  const cad = useLoad(() => api.cad(), open && tab === "cad", again);
+  const cadSkin = useLoad(() => api.cadSkin(), open && tab === "cad", again);
+  const deck = useLoad(() => api.deck(), open && tab === "mesh", again);
+  const deckSkin = useLoad(() => api.deckSkin(), open && tab === "mesh", again);
+  const glyphs = useLoad(() => api.deckGlyphs(), open && tab === "mesh", again);
+  const results = useLoad(() => api.results(), open && tab === "results", again);
+  const resultSkin = useLoad(() => api.deckSkin(), open && tab === "results", again);
+  const field = useLoad(() => api.resultsField(), open && tab === "results", again);
 
-  const colours = useMemo(
-    () => (deck ? deck.groups.map((_, i) => REGION_COLOURS[i % REGION_COLOURS.length]) : undefined),
-    [deck],
+  /** Follow a link: go where the entity lives, and select it there. */
+  const go = useCallback((entity: Link | Entity) => {
+    setTab(entity.tab as InputTab);
+    setChosen(entity.id);
+    setHover(null);
+  }, []);
+
+  const entities = model.value?.entities ?? [];
+  const regions = entities.filter((e) => e.id.startsWith("deck.region."));
+
+  // What the selection means for each view: a face id lights that face; a region lights its faces
+  // on the CAD and its group on the mesh.
+  const faces = useMemo(() => {
+    if (!chosen) return [];
+    if (chosen.startsWith("cad.face.")) return [Number(chosen.slice("cad.face.".length))];
+    const owner = regions.find((e) => chosen.startsWith(e.id));
+    return (owner?.facts.faces as number[] | undefined) ?? [];
+  }, [chosen, regions]);
+
+  const region = useMemo(() => {
+    if (!chosen || !deck.value) return null;
+    const name = chosen.split(".").slice(2).join(".");
+    const at = deck.value.groups.findIndex((g) => g.name === name);
+    return at < 0 ? null : at;
+  }, [chosen, deck.value]);
+
+  const cadColours = useMemo(() => {
+    if (!cad.value) return undefined;
+    const out: ([number, number, number] | null)[] = new Array(cad.value.faces).fill(null);
+    for (const f of faces) out[f] = PICKED;
+    return out;
+  }, [cad.value, faces]);
+
+  const deckColours = useMemo(
+    () => deck.value?.groups.map((_, i) => REGION_COLOURS[i % REGION_COLOURS.length]),
+    [deck.value],
   );
-  const canvas = assets?.canvas?.split("/").pop() ?? "no canvas";
 
-  const open = view !== "extract";
+  const canvas = assets?.canvas?.split("/").pop() ?? "no canvas";
+  const drawing = assets?.files.find((f) => f.in_run && f.kind === "drawing")?.path ?? null;
 
   return (
     <div
       className="shell"
       data-open={open}
-      // Only once something is extracted: Extract is one column, and an inline three-column
-      // template would override the rule that makes it so.
-      style={open ? { gridTemplateColumns: "340px minmax(0, 1fr) 0px" } : undefined}
+      style={open ? { gridTemplateColumns: "360px minmax(0, 1fr) 0px" } : undefined}
     >
       <header className="topbar">
         <img className="mark" src={ART.mark} alt="" aria-hidden="true" />
-        <span className="lockup">
-          <b>{VENDOR.name}</b>
-          <em>{VENDOR.tagline}</em>
-        </span>
+        <span className="lockup"><b>{VENDOR.name}</b><em>{VENDOR.tagline}</em></span>
         <span className="divider" />
-        <span className="lockup">
-          <b>{PRODUCT.name}</b>
-        </span>
+        <span className="lockup"><b>{PRODUCT.name}</b></span>
         <span className="divider" />
         <span className="lockup">
           <b>{canvas}</b>
@@ -108,7 +147,6 @@ export function App() {
               key={entry.id}
               data-active={view === entry.id}
               data-ready={entry.ready}
-              // Input and after need something extracted first; Extract itself is always there.
               disabled={!entry.ready || (entry.id !== "extract" && !assets?.extracted)}
               onClick={() => entry.ready && setView(entry.id)}
               title={entry.summary}
@@ -120,164 +158,185 @@ export function App() {
         <span className="spacer" />
       </header>
 
-      {!open ? <ExtractStage onExtracted={extracted} /> : null}
+      {!open ? <ExtractStage onExtracted={reload} /> : null}
 
       {open ? (
-      <>
-      <div className="rail">
-        <div className="rail-scroll">
-          <section className="block">
-            <h2>Inputs</h2>
-            <p className="hint">
-              Everything in <code>assets/</code>. Ticked is what a run opens — nothing else is read.
-            </p>
-            {assets ? (
-              <ul className="files">
-                {assets.files.map((f) => (
-                  <li key={f.path} className={f.in_run ? "on" : "off"}>
-                    <span className="tick">{f.in_run ? "✓" : "·"}</span>
-                    <span className="path">{f.path}</span>
-                    <span className="size">{bytes(f.bytes)}</span>
-                  </li>
+        <>
+          <div className="rail">
+            <div className="rail-scroll">
+              <section className="block">
+                <h2>Extracted</h2>
+                <p className="hint">
+                  Everything a run read, and what it is linked to. Click any link to go where that
+                  entity lives and see it there.
+                </p>
+                {model.value?.missing.map((m) => (
+                  <p className="hint" key={m.artifact}>· {m.reason}, so it contributes nothing</p>
                 ))}
-              </ul>
-            ) : (
-              <p className="hint">{failed ?? "reading assets…"}</p>
-            )}
-          </section>
-
-          {deck ? (
-            <>
-              <section className="block">
-                <h2>Mesh</h2>
-                <dl className="facts">
-                  <dt>elements</dt>
-                  <dd>
-                    {deck.mesh.elements.toLocaleString()} TET{deck.mesh.order === 2 ? "10" : "4"}
-                  </dd>
-                  <dt>nodes</dt>
-                  <dd>{deck.mesh.nodes.toLocaleString()}</dd>
-                  <dt>unknowns</dt>
-                  <dd>{deck.mesh.unknowns.toLocaleString()}</dd>
-                  <dt>boundary</dt>
-                  <dd>{deck.mesh.boundary_triangles.toLocaleString()} triangles</dd>
-                </dl>
               </section>
 
-              <section className="block">
-                <h2>Regions the deck drives</h2>
-                <p className="hint">
-                  Found by fitting each of the deck's node groups for an axis and radius, then
-                  matching the CAD face that turns about the same line. The diameters are the CAD's.
-                </p>
-                <table className="regions">
-                  <tbody>
-                    {deck.groups.map((g, i) => (
-                      <>
-                        <tr
-                          key={g.name}
-                          className={hovered === i ? "lit" : undefined}
-                          onMouseEnter={() => setHovered(i)}
-                          onMouseLeave={() => setHovered(null)}
-                          onClick={() => setOpened(opened === g.name ? null : g.name)}
-                        >
-                          <td>
-                            <span
-                              className="swatch"
-                              style={{
-                                background: `rgb(${REGION_COLOURS[i % REGION_COLOURS.length].join(",")})`,
-                              }}
-                            />
-                          </td>
-                          <td className="name">{g.name}</td>
-                          <td className="dia">{g.diameter_mm?.length ? `Ø${g.diameter_mm[0]}` : ""}</td>
-                          <td className="tris">{g.triangles.toLocaleString()}</td>
-                        </tr>
-                        {opened === g.name ? (
-                          <tr key={`${g.name}-why`}>
-                            <td />
-                            <td colSpan={3}>
-                              <dl className="why">
-                                <dt>matched on</dt>
-                                <dd>
-                                  {g.faces.length} CAD face{g.faces.length === 1 ? "" : "s"}
-                                  {g.faces.length <= 6 ? ` (${g.faces.join(", ")})` : ""}
-                                </dd>
-                                <dt>axis agreed to</dt>
-                                <dd>{g.match_mm?.toFixed(3)} mm</dd>
-                                {g.axis ? (
-                                  <>
-                                    <dt>axis</dt>
-                                    <dd>({g.axis.map((v) => v.toFixed(3)).join(", ")})</dd>
-                                    <dt>through</dt>
-                                    <dd>({g.axis_point?.map((v) => v.toFixed(1)).join(", ")})</dd>
-                                  </>
-                                ) : null}
-                                <dt>fitted from</dt>
-                                <dd>{g.deck_nodes?.toLocaleString()} deck nodes</dd>
-                                {g.deck_bands?.map((b, k) => (
-                                  <>
-                                    <dt key={`b${k}`}>band {k + 1}</dt>
-                                    <dd key={`bv${k}`}>
-                                      Ø{b.diameter_mm} × {b.length_mm} mm, {b.nodes.toLocaleString()} nodes
-                                    </dd>
-                                  </>
-                                ))}
-                                <dt>patch area</dt>
-                                <dd>{g.area_mm2?.toLocaleString()} mm²</dd>
-                                {g.force_N ? (
-                                  <>
-                                    <dt>force</dt>
-                                    <dd>({g.force_N.map((v) => Math.round(v).toLocaleString()).join(", ")}) N</dd>
-                                    <dt>applied at</dt>
-                                    <dd>{g.reference}</dd>
-                                  </>
-                                ) : null}
-                                {g.count ? (
-                                  <>
-                                    <dt>holes</dt>
-                                    <dd>{g.count}, tied to their own reference nodes</dd>
-                                  </>
-                                ) : null}
-                              </dl>
-                            </td>
-                          </tr>
-                        ) : null}
-                      </>
-                    ))}
-                  </tbody>
-                </table>
-                <p className="hint">
-                  Click a region for what the match was based on. {deck.bolts} bolt holes are driven
-                  as one group.
-                </p>
-              </section>
-            </>
-          ) : null}
-        </div>
-      </div>
+              {entities.map((e) => (
+                <section className="block entity" key={e.id} data-on={chosen === e.id}>
+                  <button className="entity-head" onClick={() => setChosen(chosen === e.id ? null : e.id)}>
+                    <span className="kind">{e.kind}</span>
+                    <b>{e.label}</b>
+                  </button>
+                  <div className="eid">{e.id}</div>
 
-      <div className="stage">
-        <div className="stage-body">
-          <FeStage
-            skin={skin}
-            mode="patches"
-            groupColours={colours as ([number, number, number] | null)[] | undefined}
-            edges={false}
-            link={link}
-            frameKey="baseline"
-            hoveredGroup={hovered}
-            caption={skin ? null : <span>{failed ?? "loading the mesh…"}</span>}
-          />
-        </div>
-      </div>
+                  {e.note ? <p className="hint">{e.note}</p> : null}
 
-      <footer className="titlebar">
-        <span>{canvas}</span>
-        <span className="spacer" />
-        <span>{deck ? `${deck.mesh.elements.toLocaleString()} elements · ${deck.mesh.unknowns.toLocaleString()} unknowns` : ""}</span>
-      </footer>
-      </>
+                  {chosen === e.id ? (
+                    <dl className="why">
+                      {Object.entries(e.facts).map(([k, v]) =>
+                        v === null || v === undefined || (Array.isArray(v) && !v.length) ? null : (
+                          <>
+                            <dt key={k}>{k.replace(/_/g, " ")}</dt>
+                            <dd key={`${k}v`}>
+                              {Array.isArray(v)
+                                ? v.length > 8
+                                  ? `${v.length} values`
+                                  : v.map((x) => (typeof x === "number" ? x.toLocaleString() : x)).join(", ")
+                                : typeof v === "number"
+                                  ? v.toLocaleString()
+                                  : String(v)}
+                            </dd>
+                          </>
+                        ),
+                      )}
+                    </dl>
+                  ) : null}
+
+                  {e.links.length ? (
+                    <div className="links">
+                      {e.links.map((l) => (
+                        <button key={l.id} className="link" onClick={() => go(l)} title={l.id}>
+                          {l.label}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </section>
+              ))}
+
+              {model.error ? (
+                <section className="block"><p className="hint">{why(model.error, "")}</p></section>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="stage">
+            <nav className="stage-tabs">
+              {INPUT_TABS.map((t) => (
+                <button key={t.id} data-active={tab === t.id} onClick={() => setTab(t.id)} title={t.summary}>
+                  {t.label}
+                </button>
+              ))}
+            </nav>
+
+            <div className="stage-body">
+              {tab === "drawing" ? (
+                drawing ? (
+                  <object data={`/api/file/${drawing}`} type="application/pdf" className="sheet">
+                    <p className="middle">The drawing is at <code>{drawing}</code>.</p>
+                  </object>
+                ) : (
+                  <p className="middle">No drawing was chosen at Extract, so there is none to show.</p>
+                )
+              ) : null}
+
+              {tab === "cad" ? (
+                cadSkin.value ? (
+                  <FeStage
+                    skin={cadSkin.value}
+                    mode="patches"
+                    groupColours={cadColours}
+                    edges={false}
+                    link={link}
+                    frameKey="cad"
+                    onHover={setHover}
+                    caption={
+                      hover ? (
+                        <span>face {hover.name} · {hover.detail}</span>
+                      ) : faces.length ? (
+                        <span>{faces.length} face{faces.length === 1 ? "" : "s"} lit</span>
+                      ) : (
+                        <span>hover a face to identify it</span>
+                      )
+                    }
+                  />
+                ) : (
+                  <p className="middle">{why(cadSkin.error, "reading the CAD…")}</p>
+                )
+              ) : null}
+
+              {tab === "mesh" ? (
+                deckSkin.value ? (
+                  <FeStage
+                    skin={deckSkin.value}
+                    glyphs={setup ? glyphs.value : null}
+                    showGlyphs={setup}
+                    mode="patches"
+                    groupColours={deckColours as ([number, number, number] | null)[] | undefined}
+                    edges
+                    link={link}
+                    frameKey="mesh"
+                    hoveredGroup={region}
+                    onHover={setHover}
+                    caption={
+                      <span className="setup-bar">
+                        <button data-on={setup} onClick={() => setSetup(!setup)}>
+                          {setup ? "hide setup" : "show setup"}
+                        </button>
+                        {hover ? (
+                          <>{hover.name} · {hover.detail}</>
+                        ) : glyphs.value ? (
+                          <>
+                            {glyphs.value.held.reduce((n, h) => n + h.count, 0)} held ·{" "}
+                            {glyphs.value.rigid.length} rigid ties ·{" "}
+                            {glyphs.value.distributing.length} couplings ·{" "}
+                            {glyphs.value.loads.length} loads
+                          </>
+                        ) : (
+                          <>{deck.value?.mesh?.elements.toLocaleString()} elements</>
+                        )}
+                      </span>
+                    }
+                  />
+                ) : (
+                  <p className="middle">{why(deckSkin.error, "loading the mesh…")}</p>
+                )
+              ) : null}
+
+              {tab === "results" ? (
+                field.value && resultSkin.value ? (
+                  <FeStage
+                    skin={resultSkin.value}
+                    values={field.value}
+                    mode="contour"
+                    edges={false}
+                    link={link}
+                    frameKey="results"
+                    onHover={setHover}
+                    caption={
+                      <span>
+                        displacement, mm — peak {Math.max(...field.value.values).toFixed(4)}
+                        {results.value?.chosen ? "" : " · the deck's own signals were not chosen"}
+                      </span>
+                    }
+                  />
+                ) : (
+                  <p className="middle">{why(field.error, "loading the result…")}</p>
+                )
+              ) : null}
+            </div>
+          </div>
+
+          <footer className="titlebar">
+            <span>{canvas}</span>
+            <span className="spacer" />
+            <span>{chosen ?? `${entities.length} entities extracted`}</span>
+          </footer>
+        </>
       ) : null}
     </div>
   );

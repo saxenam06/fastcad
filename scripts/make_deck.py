@@ -107,7 +107,7 @@ def main(out: Path) -> int:
             "axis_point": [round(float(v), 2) for v in point],
             "area_mm2": round(match.area_mm2, 1),
             "match_mm": round(match.distance_mm, 3),
-            "deck_nodes": int(len(region.points)),
+            "deck_nodes": len(region.points),
             "deck_bands": [
                 {"diameter_mm": round(2 * b.radius, 2), "length_mm": round(b.length, 1), "nodes": b.nodes}
                 for b in region.bands
